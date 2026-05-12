@@ -96,8 +96,39 @@ export function MarketplaceClient({ empresas, cidades, categorias, initialCity }
         </div>
 
         {/* Filtros */}
-        <div className="mt-10 rounded-3xl border border-brand-100 bg-white p-5 shadow-card">
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto_auto]">
+        <div className="mt-10 rounded-3xl border border-brand-100 bg-white p-4 shadow-card md:p-5">
+          {/* Mobile: só Cidade + Categoria lado a lado */}
+          <div className="grid grid-cols-2 gap-3 md:hidden">
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle" />
+              <select
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                className="h-11 w-full rounded-2xl border border-brand-100 bg-surface-soft pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-300 focus:bg-white"
+              >
+                <option value="">Cidade</option>
+                {cidades.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div className="relative">
+              <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle" />
+              <select
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
+                className="h-11 w-full rounded-2xl border border-brand-100 bg-surface-soft pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-300 focus:bg-white"
+              >
+                <option value="">Categoria</option>
+                {categorias.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Desktop: todos os filtros */}
+          <div className="hidden gap-3 md:grid md:grid-cols-[1fr_auto_auto_auto]">
             {/* Busca */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle" />
