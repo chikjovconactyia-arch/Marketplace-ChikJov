@@ -100,7 +100,7 @@ export function HeroCarousel({ slides }: Props) {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-[#0A0A0F] h-[58vh] sm:h-[65vh] md:h-[82vh] max-h-[760px]"
+      className="relative w-full overflow-hidden bg-[#0A0A0F] h-[52vh] sm:h-[60vh] md:h-[82vh] max-h-[760px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
@@ -138,7 +138,7 @@ export function HeroCarousel({ slides }: Props) {
       <div className="relative flex h-full items-center">
         <div className="container-tight w-full">
           <div
-            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-14 sm:pb-16 md:pb-0"
+            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-12 sm:pb-14 md:pb-0"
           >
             {/* Badge */}
             {slide.badge && (
@@ -201,7 +201,7 @@ export function HeroCarousel({ slides }: Props) {
             {/* CTAs */}
             <div
               className={cn(
-                "mt-4 flex flex-col items-center gap-2.5 md:mt-8 md:flex-row md:justify-start",
+                "mt-4 flex flex-col items-center gap-2 md:mt-8 md:flex-row md:justify-start",
                 "sm:flex-row sm:justify-center sm:gap-3",
                 "transition-all duration-500 delay-200",
                 transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
@@ -210,14 +210,25 @@ export function HeroCarousel({ slides }: Props) {
               {slide.cta_text && (
                 <Link
                   href={slide.cta_link ?? "#preco"}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98] sm:w-auto h-12 px-6 text-sm md:h-14 md:px-8 md:text-base"
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
+                    // Mobile: mais compacto
+                    "h-10 w-full px-5 text-sm",
+                    "sm:h-12 sm:w-auto sm:px-7",
+                    "md:h-14 md:px-8 md:text-base"
+                  )}
                 >
                   {slide.cta_text}
                 </Link>
               )}
               <Link
                 href="#empresas"
-                className="inline-flex w-full items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:w-auto h-12 px-6 text-sm md:h-14 md:px-8 md:text-base"
+                className={cn(
+                  "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
+                  "h-10 w-full px-5 text-sm",
+                  "sm:h-12 sm:w-auto sm:px-7",
+                  "md:h-14 md:px-8 md:text-base"
+                )}
               >
                 Sou empresa
               </Link>
@@ -226,36 +237,29 @@ export function HeroCarousel({ slides }: Props) {
         </div>
       </div>
 
-      {/* Arrows — menores no mobile, maiores no desktop; ocultos se 1 slide */}
+      {/* Arrows — ocultas no mobile (usa swipe), visíveis md+ */}
       {active.length > 1 && (
         <>
           <button
             onClick={prev}
             aria-label="Anterior"
-            className={cn(
-              "absolute top-1/2 z-20 -translate-y-1/2 grid place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60",
-              // Mobile: menor e mais próximo da borda
-              "left-3 h-10 w-10 md:left-8 md:h-12 md:w-12"
-            )}
+            className="hidden md:grid absolute left-8 top-1/2 z-20 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60"
           >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+            <ChevronLeft className="h-6 w-6" />
           </button>
           <button
             onClick={next}
             aria-label="Próximo"
-            className={cn(
-              "absolute top-1/2 z-20 -translate-y-1/2 grid place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60",
-              "right-3 h-10 w-10 md:right-8 md:h-12 md:w-12"
-            )}
+            className="hidden md:grid absolute right-8 top-1/2 z-20 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60"
           >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+            <ChevronRight className="h-6 w-6" />
           </button>
         </>
       )}
 
       {/* Bottom controls */}
       {active.length > 1 && (
-        <div className="absolute bottom-5 left-0 right-0 z-20 flex flex-col items-center gap-2 md:bottom-7 md:gap-3">
+        <div className="absolute bottom-4 left-0 right-0 z-20 flex flex-col items-center gap-2 md:bottom-7 md:gap-3">
           {/* Progress bar — apenas desktop */}
           <div className="hidden h-0.5 w-32 overflow-hidden rounded-full bg-white/20 md:block">
             <div
