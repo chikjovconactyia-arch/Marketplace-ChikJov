@@ -100,12 +100,7 @@ export function HeroCarousel({ slides }: Props) {
 
   return (
     <section
-      className={cn(
-        "relative w-full overflow-hidden bg-[#0A0A0F]",
-        // Mobile: altura menor e fixa; desktop: baseada no viewport
-        "min-h-[520px] sm:min-h-[600px] md:min-h-[0]"
-      )}
-      style={{ height: "clamp(520px, 85vh, 760px)" }}
+      className="relative w-full overflow-hidden bg-[#0A0A0F] h-[58vh] sm:h-[65vh] md:h-[82vh] max-h-[760px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
@@ -143,35 +138,29 @@ export function HeroCarousel({ slides }: Props) {
       <div className="relative flex h-full items-center">
         <div className="container-tight w-full">
           <div
-            className={cn(
-              // Mobile: centralizado; Desktop: alinhado à esquerda
-              "mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left",
-              // Padding bottom no mobile para não sobrepor os dots
-              "pb-20 md:pb-0"
-            )}
+            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-14 sm:pb-16 md:pb-0"
           >
             {/* Badge */}
             {slide.badge && (
               <div
                 className={cn(
-                  "mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md",
-                  // Mobile menor
-                  "px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white",
-                  "md:px-4 md:py-1.5 md:text-xs",
+                  "mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md",
+                  "px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white",
+                  "md:mb-5 md:gap-2 md:px-4 md:py-1.5 md:text-xs",
                   "transition-all duration-500",
                   transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
                 )}
               >
-                <Sparkles className="h-3 w-3 text-accent-400" />
+                <Sparkles className="h-2.5 w-2.5 text-accent-400 md:h-3 md:w-3" />
                 {slide.badge}
               </div>
             )}
 
-            {/* Title — escala mobile→desktop */}
+            {/* Title */}
             <h1
               className={cn(
-                "font-display font-bold leading-[1.08] text-white text-balance drop-shadow-2xl",
-                "text-[1.75rem] sm:text-3xl md:text-5xl lg:text-6xl",
+                "font-display font-bold leading-tight text-white drop-shadow-2xl",
+                "text-xl sm:text-2xl md:text-5xl lg:text-6xl",
                 "transition-all duration-500 delay-75",
                 transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
               )}
@@ -179,13 +168,13 @@ export function HeroCarousel({ slides }: Props) {
               {slide.title}
             </h1>
 
-            {/* Subtitle */}
+            {/* Subtitle — oculto no mobile menor, visível no sm+ */}
             {slide.subtitle && (
               <p
                 className={cn(
-                  "mx-auto mt-3 text-white/80 text-balance leading-relaxed md:ml-0",
-                  "text-sm sm:text-base md:text-lg",
-                  "max-w-[90%] sm:max-w-xl",
+                  "mx-auto mt-2 text-white/80 leading-relaxed md:ml-0",
+                  "hidden sm:block sm:text-sm md:text-lg",
+                  "max-w-[90%] sm:max-w-lg md:max-w-xl",
                   "transition-all duration-500 delay-150",
                   transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
                 )}
@@ -194,11 +183,26 @@ export function HeroCarousel({ slides }: Props) {
               </p>
             )}
 
-            {/* CTAs — full-width no mobile, auto no desktop */}
+            {/* Subtitle curto no mobile */}
+            {slide.subtitle && (
+              <p
+                className={cn(
+                  "mx-auto mt-2 text-xs text-white/75 leading-snug",
+                  "block sm:hidden",
+                  "max-w-[85%]",
+                  "transition-all duration-500 delay-150",
+                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                )}
+              >
+                {slide.subtitle.length > 80 ? slide.subtitle.slice(0, 80) + "…" : slide.subtitle}
+              </p>
+            )}
+
+            {/* CTAs */}
             <div
               className={cn(
-                "mt-6 flex flex-col items-center gap-3 md:flex-row md:justify-start",
-                "sm:flex-row sm:justify-center",
+                "mt-4 flex flex-col items-center gap-2.5 md:mt-8 md:flex-row md:justify-start",
+                "sm:flex-row sm:justify-center sm:gap-3",
                 "transition-all duration-500 delay-200",
                 transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
               )}
@@ -206,21 +210,14 @@ export function HeroCarousel({ slides }: Props) {
               {slide.cta_text && (
                 <Link
                   href={slide.cta_link ?? "#preco"}
-                  className={cn(
-                    "inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:scale-[1.03] hover:bg-accent-600",
-                    // Mobile: maior altura para toque confortável
-                    "h-14 px-7 text-base sm:h-14 sm:w-auto md:h-13"
-                  )}
+                  className="inline-flex w-full items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98] sm:w-auto h-12 px-6 text-sm md:h-14 md:px-8 md:text-base"
                 >
                   {slide.cta_text}
                 </Link>
               )}
               <Link
                 href="#empresas"
-                className={cn(
-                  "inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
-                  "h-14 px-7 text-base sm:h-14 sm:w-auto md:h-13"
-                )}
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:w-auto h-12 px-6 text-sm md:h-14 md:px-8 md:text-base"
               >
                 Sou empresa
               </Link>
