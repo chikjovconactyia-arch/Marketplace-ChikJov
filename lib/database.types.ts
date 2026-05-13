@@ -201,6 +201,7 @@ export type Database = {
           cta_text: string | null
           id: string
           image_url: string
+          mobile_image_url: string | null
           order: number
           subtitle: string | null
           title: string
@@ -214,6 +215,7 @@ export type Database = {
           cta_text?: string | null
           id?: string
           image_url: string
+          mobile_image_url?: string | null
           order?: number
           subtitle?: string | null
           title: string
@@ -227,6 +229,7 @@ export type Database = {
           cta_text?: string | null
           id?: string
           image_url?: string
+          mobile_image_url?: string | null
           order?: number
           subtitle?: string | null
           title?: string

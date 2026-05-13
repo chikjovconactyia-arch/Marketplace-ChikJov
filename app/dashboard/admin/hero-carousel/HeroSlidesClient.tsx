@@ -101,15 +101,26 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
 }
 
 // ─── Preview overlay (mini cinema) ───────────────────────────────────────────
-function SlidePreview({ slide }: { slide: HeroSlide }) {
+function SlidePreview({ slide, device = "desktop" }: { slide: HeroSlide; device?: "desktop" | "mobile" }) {
+  const isMobile = device === "mobile";
+  const imageUrl = isMobile ? (slide.mobile_image_url ?? slide.image_url) : slide.image_url;
   return (
-    <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-[#0A0A0F]">
-      {slide.image_url && (
+    <div className={cn(
+      "relative w-full overflow-hidden rounded-2xl bg-[#0A0A0F]",
+      isMobile ? "aspect-[4/5] max-w-[280px] mx-auto" : "h-64"
+    )}>
+      {imageUrl && (
         <>
           <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-            style={{ backgroundImage: `url(${slide.image_url})` }} />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/70 to-transparent" />
+            style={{ backgroundImage: `url(${imageUrl})` }} />
+          {isMobile ? (
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/0 to-[#0A0A0F]/85" />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/70 to-transparent" />
+            </>
+          )}
         </>
       )}
       <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
@@ -143,7 +154,8 @@ function SlidePreview({ slide }: { slide: HeroSlide }) {
 
 // ─── Form Modal ───────────────────────────────────────────────────────────────
 const emptyForm = {
-  title: "", subtitle: "", badge: "", image_url: "",
+  title: "", subtitle: "", badge: "",
+  image_url: "", mobile_image_url: "",
   cta_text: "Assinar agora", cta_link: "#preco",
   order: 0, active: true,
 };
@@ -159,9 +171,17 @@ function SlideModal({
 }) {
   const [form, setForm] = useState(() =>
     editing
-      ? { title: editing.title, subtitle: editing.subtitle ?? "", badge: editing.badge ?? "",
-          image_url: editing.image_url, cta_text: editing.cta_text ?? "Assinar agora",
-          cta_link: editing.cta_link ?? "#preco", order: editing.order, active: editing.active }
+      ? {
+          title: editing.title,
+          subtitle: editing.subtitle ?? "",
+          badge: editing.badge ?? "",
+          image_url: editing.image_url,
+          mobile_image_url: editing.mobile_image_url ?? "",
+          cta_text: editing.cta_text ?? "Assinar agora",
+          cta_link: editing.cta_link ?? "#preco",
+          order: editing.order,
+          active: editing.active,
+        }
       : { ...emptyForm }
   );
   const [pending, start] = useTransition();
@@ -185,6 +205,7 @@ function SlideModal({
     subtitle: form.subtitle || null,
     badge: form.badge || null,
     image_url: form.image_url,
+    mobile_image_url: form.mobile_image_url || null,
     cta_text: form.cta_text || null,
     cta_link: form.cta_link || null,
     active: form.active,
@@ -224,19 +245,63 @@ function SlideModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
           {tab === "preview" ? (
-            <div className="p-6">
-              <p className="mb-3 text-xs text-ink-muted">Preview · Como aparecerá no hero da landing page</p>
-              <SlidePreview slide={fakeSlide} />
-              <p className="mt-4 text-center text-xs text-ink-subtle">
-                O resultado real depende da resolução e proporção da imagem enviada.
+            <div className="space-y-6 p-6">
+              <p className="text-xs text-ink-muted">Preview · Como aparecerá no hero da landing page</p>
+
+              {/* Desktop */}
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
+                  <Monitor className="h-3.5 w-3.5" />
+                  Desktop — 1920 × 700
+                </div>
+                <SlidePreview slide={fakeSlide} device="desktop" />
+              </div>
+
+              {/* Mobile */}
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-700">
+                  📱 Mobile — 1080 × 1350
+                  {!fakeSlide.mobile_image_url && (
+                    <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
+                      usando desktop
+                    </span>
+                  )}
+                </div>
+                <SlidePreview slide={fakeSlide} device="mobile" />
+              </div>
+
+              <p className="text-center text-xs text-ink-subtle">
+                O resultado real depende da resolução exata enviada.
               </p>
             </div>
           ) : (
             <div className="space-y-5 p-6">
-              {/* Imagem */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-ink">Imagem do slide *</label>
-                <ImageUpload value={form.image_url} onChange={(url) => setForm((f) => ({ ...f, image_url: url }))} />
+              {/* Imagens — Desktop + Mobile */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Desktop */}
+                <div>
+                  <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
+                    <Monitor className="h-3.5 w-3.5 text-brand-600" />
+                    Imagem Desktop *
+                    <span className="ml-auto rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-700">
+                      1920 × 700
+                    </span>
+                  </label>
+                  <ImageUpload value={form.image_url} onChange={(url) => setForm((f) => ({ ...f, image_url: url }))} />
+                  <p className="mt-1.5 text-[10px] text-ink-subtle">Banner horizontal widescreen</p>
+                </div>
+
+                {/* Mobile */}
+                <div>
+                  <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
+                    📱 Imagem Mobile
+                    <span className="ml-auto rounded-md bg-accent-50 px-1.5 py-0.5 text-[10px] font-bold text-accent-700">
+                      1080 × 1350
+                    </span>
+                  </label>
+                  <ImageUpload value={form.mobile_image_url} onChange={(url) => setForm((f) => ({ ...f, mobile_image_url: url }))} />
+                  <p className="mt-1.5 text-[10px] text-ink-subtle">Vertical estilo Instagram (opcional — usa desktop se vazio)</p>
+                </div>
               </div>
 
               {/* Badge */}

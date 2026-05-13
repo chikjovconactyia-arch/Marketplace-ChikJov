@@ -12,7 +12,8 @@ export interface HeroSlide {
   badge: string | null;
   cta_text: string | null;
   cta_link: string | null;
-  image_url: string;
+  image_url: string;              // desktop 1920×700
+  mobile_image_url?: string | null; // mobile 1080×1350 (opcional)
   active: boolean;
   order: number;
 }
@@ -100,39 +101,58 @@ export function HeroCarousel({ slides }: Props) {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-[#0A0A0F] h-[52vh] sm:h-[60vh] md:h-[82vh] max-h-[760px]"
+      className={cn(
+        "relative w-full overflow-hidden bg-[#0A0A0F]",
+        // Mobile: aspect-ratio 4:5 vertical (estilo Instagram/TikTok)
+        "aspect-[4/5] sm:aspect-[16/10]",
+        // Desktop: altura fixa wide
+        "md:aspect-auto md:h-[82vh] md:max-h-[760px]"
+      )}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Background slides */}
-      {active.map((s, i) => (
-        <div
-          key={s.id}
-          aria-hidden={i !== current}
-          className={cn(
-            "absolute inset-0 transition-opacity duration-700 ease-in-out",
-            i === current && !transitioning ? "opacity-100" : "opacity-0"
-          )}
-        >
+      {/* Background slides — usa <picture> para carregar imagem correta por device */}
+      {active.map((s, i) => {
+        const desktopSrc = s.image_url;
+        const mobileSrc = s.mobile_image_url ?? s.image_url; // fallback p/ desktop se mobile não existir
+        return (
           <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: `url(${s.image_url})`,
-              transform: i === current ? "scale(1.04)" : "scale(1)",
-              transition: "transform 8s ease-out",
-            }}
-          />
-          {/* Mobile: overlay mais escuro para garantir legibilidade */}
-          <div className="absolute inset-0 bg-black/60 md:bg-black/30" />
-          {/* Desktop: gradiente lateral para o texto */}
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
-          {/* Gradiente inferior em todos */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent" />
-        </div>
-      ))}
+            key={s.id}
+            aria-hidden={i !== current}
+            className={cn(
+              "absolute inset-0 transition-opacity duration-700 ease-in-out",
+              i === current && !transitioning ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <picture>
+              {/* Mobile (até 767px) — imagem vertical 1080×1350 */}
+              <source media="(max-width: 767px)" srcSet={mobileSrc} />
+              {/* Desktop — imagem horizontal 1920×700 */}
+              <source media="(min-width: 768px)" srcSet={desktopSrc} />
+              <img
+                src={desktopSrc}
+                alt={s.title}
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                className={cn(
+                  "absolute inset-0 h-full w-full object-cover",
+                  i === current ? "scale-[1.04]" : "scale-100"
+                )}
+                style={{ transition: "transform 8s ease-out" }}
+              />
+            </picture>
+            {/* Mobile: overlay mais leve, imagem vertical é o herói */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-[#0A0A0F]/85 md:bg-black/30 md:bg-none" />
+            {/* Desktop: gradiente lateral para o texto */}
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
+            {/* Gradiente inferior universal */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent" />
+          </div>
+        );
+      })}
 
       {/* Content */}
       <div className="relative flex h-full items-center">
