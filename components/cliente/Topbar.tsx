@@ -9,9 +9,10 @@ interface TopbarProps {
   title: string;
   breadcrumbs?: { label: string; href?: string }[];
   userName?: string | null;
+  avatarUrl?: string | null;
 }
 
-export function Topbar({ title, breadcrumbs, userName }: TopbarProps) {
+export function Topbar({ title, breadcrumbs, userName, avatarUrl }: TopbarProps) {
   const { toggle } = useSidebar();
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -66,9 +67,13 @@ export function Topbar({ title, breadcrumbs, userName }: TopbarProps) {
             onClick={() => setProfileOpen((v) => !v)}
             className="flex items-center gap-2 rounded-xl border border-[#E8E4F3] bg-white px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-brand-200"
           >
-            <div className="grid h-6 w-6 place-items-center rounded-full bg-brand-gradient text-xs font-bold text-white">
-              {(userName ?? "C")[0].toUpperCase()}
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
+            ) : (
+              <div className="grid h-6 w-6 place-items-center rounded-full bg-brand-gradient text-xs font-bold text-white">
+                {(userName ?? "C")[0].toUpperCase()}
+              </div>
+            )}
             <span className="hidden sm:block max-w-[100px] truncate">
               {userName ?? "Cliente"}
             </span>

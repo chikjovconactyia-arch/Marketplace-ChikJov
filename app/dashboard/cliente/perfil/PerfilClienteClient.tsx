@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import {
   User, Mail, Phone, MapPin, Save, Loader2, CheckCircle2,
-  AlertCircle, CreditCard, Calendar, Lock, X
+  AlertCircle, CreditCard, Calendar, Lock, X,
+  UploadCloud, Trash2, Camera
 } from "lucide-react";
-import { updateClientePerfilAction } from "@/app/actions/cliente-perfil";
+import { updateClientePerfilAction, saveAvatarAction } from "@/app/actions/cliente-perfil";
 import { cn } from "@/lib/utils";
 
 const CIDADES_RMBH = [
@@ -39,6 +40,108 @@ interface Props {
   profile: Profile;
   assinatura: Assinatura | null;
   userEmail: string;
+  avatarUrl?: string | null;
+}
+
+// ─── Avatar Upload ────────────────────────────────────────────────────────────
+function AvatarUpload({ value, onSaved }: {
+  value: string;
+  onSaved: (url: string, msg: string, type: "ok" | "error") => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState(value);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const upload = useCallback(async (file: File) => {
+    setError(null);
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Erro no upload");
+      const url: string = json.url;
+      setPreview(url);
+      const saved = await saveAvatarAction(url);
+      onSaved(url, saved.message, saved.ok ? "ok" : "error");
+    } catch (e: any) {
+      setError(e.message ?? "Erro ao enviar imagem.");
+    } finally {
+      setUploading(false);
+    }
+  }, [onSaved]);
+
+  const remove = async () => {
+    setPreview("");
+    const saved = await saveAvatarAction("");
+    onSaved("", saved.message, saved.ok ? "ok" : "error");
+  };
+
+  return (
+    <div className="flex items-center gap-5">
+      {/* Avatar preview */}
+      <div className="relative shrink-0">
+        {preview ? (
+          <>
+            <img
+              src={preview}
+              alt="Foto de perfil"
+              className="h-20 w-20 rounded-2xl border border-[#E8E4F3] object-cover shadow-soft"
+            />
+            <button
+              type="button"
+              onClick={remove}
+              title="Remover foto"
+              className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </>
+        ) : (
+          <div
+            onClick={() => inputRef.current?.click()}
+            className="relative grid h-20 w-20 cursor-pointer place-items-center rounded-2xl bg-brand-50 border-2 border-dashed border-brand-200 hover:bg-brand-100 transition-colors"
+          >
+            <User className="h-8 w-8 text-brand-300" />
+            <div className="absolute bottom-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-brand-500 text-white">
+              <Camera className="h-3 w-3" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div>
+        <p className="text-sm font-medium text-ink">Foto de perfil</p>
+        <p className="mt-0.5 text-xs text-ink-muted">JPG, PNG ou WebP · máx. 5MB</p>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="mt-2.5 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-60"
+        >
+          {uploading
+            ? <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
+            : <><UploadCloud className="h-4 w-4" /> {preview ? "Trocar foto" : "Enviar foto"}</>
+          }
+        </button>
+        {error && (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-red-600">
+            <AlertCircle className="h-3.5 w-3.5" />{error}
+          </p>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
+        />
+      </div>
+    </div>
+  );
 }
 
 const inputCls = "w-full rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-sm text-ink placeholder-ink-subtle outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
@@ -90,7 +193,7 @@ const SUBSCRIPTION_LABELS: Record<string, { label: string; cls: string }> = {
   inactive: { label: "Inativo", cls: "bg-surface-muted text-ink-subtle" },
 };
 
-export function PerfilClienteClient({ profile, assinatura, userEmail }: Props) {
+export function PerfilClienteClient({ profile, assinatura, userEmail, avatarUrl }: Props) {
   const [form, setForm] = useState({
     full_name: profile.full_name ?? "",
     phone: profile.phone ?? "",
@@ -127,6 +230,13 @@ export function PerfilClienteClient({ profile, assinatura, userEmail }: Props) {
         {/* Coluna esquerda — Dados pessoais */}
         <div className="space-y-6 lg:col-span-2">
           <SectionCard title="Dados Pessoais" icon={User}>
+            {/* Foto de perfil — auto-salva ao fazer upload */}
+            <div className="mb-6 pb-6 border-b border-[#E8E4F3]">
+              <AvatarUpload
+                value={avatarUrl ?? ""}
+                onSaved={(_, msg, type) => showToast(msg, type)}
+              />
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nome completo *" icon={User}>
                 <input

@@ -42,3 +42,24 @@ export async function updateClientePerfilAction(
   revalidatePath("/dashboard/cliente/perfil");
   return { ok: true, message: "Perfil atualizado com sucesso!" };
 }
+
+
+// Salva avatar_url no user_metadata do Supabase Auth — auto-save após upload
+export async function saveAvatarAction(avatarUrl: string): Promise<{ ok: boolean; message: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+
+  const { error } = await supabase.auth.updateUser({
+    data: { avatar_url: avatarUrl || null },
+  });
+
+  if (error) {
+    console.error("[saveAvatarAction]", error);
+    return { ok: false, message: "Erro ao salvar foto." };
+  }
+
+  revalidatePath("/dashboard/cliente/perfil");
+  revalidatePath("/dashboard/cliente", "layout");
+  return { ok: true, message: "Foto de perfil atualizada!" };
+}

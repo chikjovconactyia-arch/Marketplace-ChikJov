@@ -40,7 +40,12 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  avatarUrl?: string | null;
+  userName?: string | null;
+}
+
+export function Sidebar({ avatarUrl, userName }: SidebarProps = {}) {
   const pathname = usePathname();
   const { open, close } = useSidebar();
 
@@ -125,13 +130,32 @@ export function Sidebar() {
           ))}
         </nav>
 
-        <div className="mx-3 mb-4 mt-auto">
-          <div className="h-px bg-white/10 mb-3" />
+        <div className="mx-3 mb-4 mt-auto space-y-2">
+          <div className="h-px bg-white/10" />
+          {/* Avatar do cliente */}
+          <Link
+            href="/dashboard/cliente/perfil"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-white/8"
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-400/50" />
+            ) : (
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-brand-500/30 text-xs font-bold text-white">
+                {(userName ?? "C")[0].toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white/90">
+                {userName ? userName.split(" ")[0] : "Minha conta"}
+              </p>
+              <p className="text-[10px] text-white/40">Ver perfil</p>
+            </div>
+          </Link>
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition-all hover:bg-white/8 hover:text-white"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-white/50 transition-all hover:bg-white/8 hover:text-white"
           >
             <Globe className="h-4 w-4 text-white/30" />
             Voltar ao site
