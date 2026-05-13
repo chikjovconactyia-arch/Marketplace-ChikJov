@@ -3,6 +3,8 @@ import { Sidebar } from "@/components/empresa/Sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function EmpresaLayout({ children }: { children: React.ReactNode }) {
   // Busca logo da empresa para exibir na sidebar
   const supabase = await createClient();

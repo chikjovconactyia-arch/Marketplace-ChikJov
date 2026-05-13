@@ -6,7 +6,7 @@ import {
   Loader2, CheckCircle2, AlertCircle, Save, Hash, Instagram,
   UploadCloud, Trash2, Image as ImageIcon
 } from "lucide-react";
-import { updatePerfilPessoalAction, updateEmpresaAction } from "@/app/actions/perfil";
+import { updatePerfilPessoalAction, updateEmpresaAction, saveLogoAction } from "@/app/actions/perfil";
 import { cn } from "@/lib/utils";
 
 const CATEGORIAS = [
@@ -107,7 +107,11 @@ function Field({
 const inputCls = "w-full rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-sm text-ink placeholder-ink-subtle outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 
 // ─── Logo Upload ──────────────────────────────────────────────────────────────
-function LogoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+function LogoUpload({ value, onChange, onSaved }: {
+  value: string;
+  onChange: (url: string) => void;
+  onSaved?: (msg: string, type: "ok" | "error") => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,13 +125,17 @@ function LogoUpload({ value, onChange }: { value: string; onChange: (url: string
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Erro no upload");
-      onChange(json.url);
+      const url: string = json.url;
+      onChange(url);
+      // Auto-salva logo no banco imediatamente após upload
+      const saved = await saveLogoAction(url);
+      onSaved?.(saved.message, saved.ok ? "ok" : "error");
     } catch (e: any) {
       setError(e.message ?? "Erro ao enviar imagem.");
     } finally {
       setUploading(false);
     }
-  }, [onChange]);
+  }, [onChange, onSaved]);
 
   return (
     <div className="flex items-start gap-5">
@@ -308,11 +316,12 @@ export function PerfilForm({ profile, empresa, userEmail }: Props) {
             </p>
           ) : (
             <>
-              {/* Logo */}
+              {/* Logo — auto-salva no banco após upload */}
               <div className="mb-6 pb-6 border-b border-[#E8E4F3]">
                 <LogoUpload
                   value={emp.logo_url}
                   onChange={(url) => setEmp((p) => ({ ...p, logo_url: url }))}
+                  onSaved={(msg, type) => setToast({ msg, type })}
                 />
               </div>
 

@@ -29,6 +29,47 @@ export interface PerfilResult {
   message: string;
 }
 
+// Salva apenas a logo_url da empresa — chamado automaticamente após upload
+export async function saveLogoAction(logoUrl: string): Promise<PerfilResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+
+  const admin = createAdminClient();
+
+  // Busca empresa do usuário
+  const { data: empresario } = await admin
+    .from("empresarios")
+    .select("id")
+    .eq("email", user.email ?? "")
+    .maybeSingle();
+
+  if (!empresario) return { ok: false, message: "Empresário não encontrado." };
+
+  const { data: empresa } = await admin
+    .from("empresas")
+    .select("id")
+    .eq("empresario_id", empresario.id)
+    .maybeSingle();
+
+  if (!empresa) return { ok: false, message: "Empresa não encontrada." };
+
+  const { error } = await admin
+    .from("empresas")
+    .update({ logo_url: logoUrl || null })
+    .eq("id", empresa.id);
+
+  if (error) {
+    console.error("[saveLogoAction]", error);
+    return { ok: false, message: "Erro ao salvar logo." };
+  }
+
+  revalidatePath("/dashboard/empresa/perfil");
+  revalidatePath("/dashboard/empresa", "layout");
+  revalidatePath("/", "page");
+  return { ok: true, message: "Logo salva!" };
+}
+
 export async function updatePerfilPessoalAction(
   data: UpdatePerfilPessoalInput
 ): Promise<PerfilResult> {
@@ -61,6 +102,8 @@ export async function updatePerfilPessoalAction(
     .eq("email", user.email ?? "");
 
   revalidatePath("/dashboard/empresa/perfil");
+  revalidatePath("/dashboard/empresa", "layout");
+  revalidatePath("/", "page");
   return { ok: true, message: "Informações pessoais atualizadas!" };
 }
 
@@ -114,6 +157,8 @@ export async function updateEmpresaAction(
         return { ok: false, message: "Erro ao salvar empresa." };
       }
       revalidatePath("/dashboard/empresa/perfil");
+  revalidatePath("/dashboard/empresa", "layout");
+  revalidatePath("/", "page");
       return { ok: true, message: "Informações da empresa atualizadas!" };
     }
     return { ok: false, message: "Empresa não encontrada para este usuário." };
@@ -160,5 +205,7 @@ export async function updateEmpresaAction(
   }
 
   revalidatePath("/dashboard/empresa/perfil");
+  revalidatePath("/dashboard/empresa", "layout");
+  revalidatePath("/", "page");
   return { ok: true, message: "Informações da empresa atualizadas!" };
 }
