@@ -144,21 +144,22 @@ export function HeroCarousel({ slides }: Props) {
                 style={{ transition: "transform 8s ease-out" }}
               />
             </picture>
-            {/* Mobile: overlay mais leve, imagem vertical é o herói */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-[#0A0A0F]/85 md:bg-black/30 md:bg-none" />
-            {/* Desktop: gradiente lateral para o texto */}
+            {/* Mobile: gradiente forte na parte inferior para legibilidade do texto */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent md:hidden" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/70 to-transparent md:hidden" />
+            {/* Desktop: overlay + gradiente lateral para o texto */}
+            <div className="absolute inset-0 hidden bg-black/30 md:block" />
             <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
-            {/* Gradiente inferior universal */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent" />
+            <div className="absolute inset-0 hidden bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent md:block" />
           </div>
         );
       })}
 
       {/* Content */}
-      <div className="relative flex h-full items-center">
+      <div className="relative flex h-full items-end md:items-center">
         <div className="container-tight w-full">
           <div
-            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-12 sm:pb-14 md:pb-0"
+            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-14 sm:pb-16 md:pb-0"
           >
             {/* Badge */}
             {slide.badge && (
