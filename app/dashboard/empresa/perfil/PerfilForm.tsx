@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import {
   User, Building2, Phone, Mail, MapPin, Globe, FileText,
-  Loader2, CheckCircle2, AlertCircle, Save, Hash, Instagram
+  Loader2, CheckCircle2, AlertCircle, Save, Hash, Instagram,
+  UploadCloud, Trash2, Image as ImageIcon
 } from "lucide-react";
 import { updatePerfilPessoalAction, updateEmpresaAction } from "@/app/actions/perfil";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ interface Empresa {
   description: string | null;
   cnpj: string | null;
   instagram?: string | null;
+  logo_url?: string | null;
   active?: boolean;
 }
 
@@ -104,6 +106,93 @@ function Field({
 
 const inputCls = "w-full rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-sm text-ink placeholder-ink-subtle outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 
+// ─── Logo Upload ──────────────────────────────────────────────────────────────
+function LogoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const upload = useCallback(async (file: File) => {
+    setError(null);
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Erro no upload");
+      onChange(json.url);
+    } catch (e: any) {
+      setError(e.message ?? "Erro ao enviar imagem.");
+    } finally {
+      setUploading(false);
+    }
+  }, [onChange]);
+
+  return (
+    <div className="flex items-start gap-5">
+      {/* Preview */}
+      <div className="relative h-24 w-24 shrink-0">
+        {value ? (
+          <>
+            <img
+              src={value}
+              alt="Logo"
+              className="h-24 w-24 rounded-2xl border border-[#E8E4F3] bg-white object-contain p-2 shadow-soft"
+            />
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              title="Remover logo"
+              className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </>
+        ) : (
+          <div className="grid h-24 w-24 place-items-center rounded-2xl border-2 border-dashed border-brand-100 bg-surface-soft">
+            <ImageIcon className="h-8 w-8 text-brand-200" />
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="flex-1">
+        <p className="text-sm font-medium text-ink">Logo da empresa</p>
+        <p className="mt-0.5 text-xs text-ink-muted">JPG, PNG ou WebP · máx. 5MB · Recomendado: 400×400px</p>
+
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className={cn(
+            "mt-3 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-60",
+          )}
+        >
+          {uploading
+            ? <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
+            : <><UploadCloud className="h-4 w-4" /> {value ? "Trocar logo" : "Enviar logo"}</>
+          }
+        </button>
+
+        {error && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-red-600">
+            <AlertCircle className="h-3.5 w-3.5" />{error}
+          </p>
+        )}
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function PerfilForm({ profile, empresa, userEmail }: Props) {
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "error" } | null>(null);
 
@@ -134,6 +223,7 @@ export function PerfilForm({ profile, empresa, userEmail }: Props) {
     description: empresa?.description ?? "",
     cnpj: empresa?.cnpj ?? "",
     instagram: empresa?.instagram ?? "",
+    logo_url: empresa?.logo_url ?? "",
   });
   const [pendingE, startE] = useTransition();
 
@@ -218,6 +308,14 @@ export function PerfilForm({ profile, empresa, userEmail }: Props) {
             </p>
           ) : (
             <>
+              {/* Logo */}
+              <div className="mb-6 pb-6 border-b border-[#E8E4F3]">
+                <LogoUpload
+                  value={emp.logo_url}
+                  onChange={(url) => setEmp((p) => ({ ...p, logo_url: url }))}
+                />
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Nome da empresa" icon={Building2} required>
                   <input

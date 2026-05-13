@@ -45,7 +45,12 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  logoUrl?: string | null;
+  empresaNome?: string | null;
+}
+
+export function Sidebar({ logoUrl, empresaNome }: SidebarProps = {}) {
   const pathname = usePathname();
   const { open, close } = useSidebar();
 
@@ -69,12 +74,21 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5">
           <Link href="/dashboard/empresa" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg shadow-brand-900/50">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
+            {/* Logo da empresa ou ícone padrão ChikJov */}
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={empresaNome ?? "Logo"}
+                className="h-9 w-9 rounded-xl object-contain bg-white p-0.5"
+              />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg shadow-brand-900/50">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+            )}
             <div>
               <span className="block font-display text-lg font-bold tracking-tight text-white">
-                ChikJov
+                {empresaNome ?? "ChikJov"}
               </span>
               <span className="block text-[10px] font-medium uppercase tracking-widest text-brand-400">
                 Empresa

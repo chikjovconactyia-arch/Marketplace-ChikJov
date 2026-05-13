@@ -86,7 +86,7 @@ export function Topbar({ title, breadcrumbs, empresaName }: TopbarProps) {
               <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
               <div className="absolute right-0 top-12 z-20 w-44 rounded-xl border border-[#E8E4F3] bg-white py-1 shadow-card">
                 <a
-                  href="/dashboard/empresa/configuracoes"
+                  href="/dashboard/empresa/perfil"
                   className="flex items-center gap-2.5 px-4 py-2 text-sm text-ink transition-colors hover:bg-surface-soft"
                 >
                   <User className="h-4 w-4 text-ink-muted" />

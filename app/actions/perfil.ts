@@ -21,6 +21,7 @@ export interface UpdateEmpresaInput {
   description: string;
   cnpj: string;
   instagram?: string;
+  logo_url?: string;
 }
 
 export interface PerfilResult {
@@ -104,6 +105,7 @@ export async function updateEmpresaAction(
           description: data.description || null,
           cnpj: data.cnpj || null,
           instagram: data.instagram || null,
+          logo_url: data.logo_url || null,
         })
         .eq("id", _empresaId);
 

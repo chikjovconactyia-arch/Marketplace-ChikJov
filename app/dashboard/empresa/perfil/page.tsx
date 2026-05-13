@@ -1,4 +1,4 @@
-import { UserCircle } from "lucide-react";
+import { UserCircle, Building2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,7 +25,7 @@ export default async function PerfilPage() {
   const { data: empresa } = empresario
     ? await admin
         .from("empresas")
-        .select("id, name, category, city, phone, email, website, instagram, address, description, cnpj, active")
+        .select("id, name, category, city, phone, email, website, instagram, address, description, cnpj, active, logo_url")
         .eq("empresario_id", empresario.id)
         .maybeSingle()
     : { data: null };
@@ -37,14 +37,28 @@ export default async function PerfilPage() {
       <div className="flex-1 overflow-auto px-4 py-6 md:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex items-center gap-4">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-gradient text-white shadow-card">
-            <UserCircle className="h-7 w-7" />
+          {/* Avatar — logo se disponível, ícone caso contrário */}
+          <div className="relative h-16 w-16 shrink-0">
+            {empresa?.logo_url ? (
+              <img
+                src={empresa.logo_url}
+                alt={empresa.name}
+                className="h-16 w-16 rounded-2xl object-contain bg-white border border-[#E8E4F3] p-1 shadow-card"
+              />
+            ) : (
+              <div className="h-16 w-16 grid place-items-center rounded-2xl bg-brand-gradient text-white shadow-card">
+                <Building2 className="h-7 w-7" />
+              </div>
+            )}
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-ink md:text-3xl">
               {profile?.full_name ?? "Meu Perfil"}
             </h1>
             <p className="mt-0.5 text-sm text-ink-muted">{user.email}</p>
+            {empresa?.name && (
+              <p className="mt-0.5 text-xs font-medium text-brand-600">{empresa.name}</p>
+            )}
           </div>
         </div>
 
