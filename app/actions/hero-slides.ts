@@ -7,10 +7,12 @@ export interface HeroSlideInput {
   title: string;
   subtitle: string;
   badge: string;
-  image_url: string;          // desktop 1920×700
-  mobile_image_url: string;   // mobile 1080×1350 (opcional)
+  image_url: string;
+  mobile_image_url: string;
   cta_text: string;
   cta_link: string;
+  cta2_text: string;
+  cta2_link: string;
   order: number;
   active: boolean;
 }
@@ -41,6 +43,8 @@ export async function createHeroSlideAction(data: HeroSlideInput): Promise<Slide
       mobile_image_url: data.mobile_image_url || null,
       cta_text: data.cta_text || null,
       cta_link: data.cta_link || null,
+      cta2_text: data.cta2_text || null,
+      cta2_link: data.cta2_link || null,
       order: data.order ?? 0,
       active: data.active ?? true,
     })
@@ -70,6 +74,8 @@ export async function updateHeroSlideAction(id: string, data: HeroSlideInput): P
       mobile_image_url: data.mobile_image_url || null,
       cta_text: data.cta_text || null,
       cta_link: data.cta_link || null,
+      cta2_text: data.cta2_text || null,
+      cta2_link: data.cta2_link || null,
       order: data.order ?? 0,
       active: data.active ?? true,
     })
@@ -125,6 +131,8 @@ export async function duplicateHeroSlideAction(id: string): Promise<SlideResult>
       mobile_image_url: original.mobile_image_url ?? null,
       cta_text: original.cta_text ?? null,
       cta_link: original.cta_link ?? null,
+      cta2_text: original.cta2_text ?? null,
+      cta2_link: original.cta2_link ?? null,
       active: false,
       order: (original.order ?? 0) + 1,
     })

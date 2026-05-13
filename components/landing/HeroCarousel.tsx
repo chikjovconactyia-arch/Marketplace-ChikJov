@@ -12,8 +12,10 @@ export interface HeroSlide {
   badge: string | null;
   cta_text: string | null;
   cta_link: string | null;
-  image_url: string;              // desktop 1920×700
-  mobile_image_url?: string | null; // mobile 1080×1350 (opcional)
+  cta2_text: string | null;
+  cta2_link: string | null;
+  image_url: string;
+  mobile_image_url?: string | null;
   active: boolean;
   order: number;
 }
@@ -31,6 +33,8 @@ const FALLBACK_SLIDE: HeroSlide = {
   badge: "Clube de Vantagens",
   cta_text: "Assinar agora",
   cta_link: "#preco",
+  cta2_text: "Sou empresa",
+  cta2_link: "#empresas",
   image_url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&q=85",
   active: true,
   order: 0,
@@ -219,41 +223,46 @@ export function HeroCarousel({ slides }: Props) {
               </p>
             )}
 
-            {/* CTAs */}
-            <div
-              className={cn(
-                "mt-4 flex flex-col items-center gap-2 md:mt-8 md:flex-row md:justify-start",
-                "sm:flex-row sm:justify-center sm:gap-3",
-                "transition-all duration-500 delay-200",
-                transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
-              )}
-            >
-              {slide.cta_text && (
-                <Link
-                  href={slide.cta_link ?? "#preco"}
-                  className={cn(
-                    "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
-                    // Mobile: mais compacto
-                    "h-10 w-full px-5 text-sm",
-                    "sm:h-12 sm:w-auto sm:px-7",
-                    "md:h-14 md:px-8 md:text-base"
-                  )}
-                >
-                  {slide.cta_text}
-                </Link>
-              )}
-              <Link
-                href="#empresas"
+            {/* CTAs — só exibe se texto E link estiverem preenchidos */}
+            {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
+              <div
                 className={cn(
-                  "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
-                  "h-10 w-full px-5 text-sm",
-                  "sm:h-12 sm:w-auto sm:px-7",
-                  "md:h-14 md:px-8 md:text-base"
+                  "mt-4 flex flex-col items-center gap-2 md:mt-8 md:flex-row md:justify-start",
+                  "sm:flex-row sm:justify-center sm:gap-3",
+                  "transition-all duration-500 delay-200",
+                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
                 )}
               >
-                Sou empresa
-              </Link>
-            </div>
+                {/* Botão 1 — só aparece se texto e link preenchidos */}
+                {slide.cta_text?.trim() && slide.cta_link?.trim() && (
+                  <Link
+                    href={slide.cta_link}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
+                      "h-10 w-full px-5 text-sm",
+                      "sm:h-12 sm:w-auto sm:px-7",
+                      "md:h-14 md:px-8 md:text-base"
+                    )}
+                  >
+                    {slide.cta_text}
+                  </Link>
+                )}
+                {/* Botão 2 — só aparece se texto e link preenchidos */}
+                {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
+                  <Link
+                    href={slide.cta2_link}
+                    className={cn(
+                      "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
+                      "h-10 w-full px-5 text-sm",
+                      "sm:h-12 sm:w-auto sm:px-7",
+                      "md:h-14 md:px-8 md:text-base"
+                    )}
+                  >
+                    {slide.cta2_text}
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

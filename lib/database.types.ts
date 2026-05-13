@@ -199,6 +199,8 @@ export type Database = {
           created_at: string
           cta_link: string | null
           cta_text: string | null
+          cta2_link: string | null
+          cta2_text: string | null
           id: string
           image_url: string
           mobile_image_url: string | null
@@ -213,6 +215,8 @@ export type Database = {
           created_at?: string
           cta_link?: string | null
           cta_text?: string | null
+          cta2_link?: string | null
+          cta2_text?: string | null
           id?: string
           image_url: string
           mobile_image_url?: string | null
@@ -227,6 +231,8 @@ export type Database = {
           created_at?: string
           cta_link?: string | null
           cta_text?: string | null
+          cta2_link?: string | null
+          cta2_text?: string | null
           id?: string
           image_url?: string
           mobile_image_url?: string | null

@@ -157,6 +157,7 @@ const emptyForm = {
   title: "", subtitle: "", badge: "",
   image_url: "", mobile_image_url: "",
   cta_text: "Assinar agora", cta_link: "#preco",
+  cta2_text: "", cta2_link: "",
   order: 0, active: true,
 };
 
@@ -179,6 +180,8 @@ function SlideModal({
           mobile_image_url: editing.mobile_image_url ?? "",
           cta_text: editing.cta_text ?? "Assinar agora",
           cta_link: editing.cta_link ?? "#preco",
+          cta2_text: editing.cta2_text ?? "",
+          cta2_link: editing.cta2_link ?? "",
           order: editing.order,
           active: editing.active,
         }
@@ -208,6 +211,8 @@ function SlideModal({
     mobile_image_url: form.mobile_image_url || null,
     cta_text: form.cta_text || null,
     cta_link: form.cta_link || null,
+    cta2_text: form.cta2_text || null,
+    cta2_link: form.cta2_link || null,
     active: form.active,
     order: form.order,
   };
@@ -323,16 +328,51 @@ function SlideModal({
                 <textarea className={cn(inputCls, "min-h-[72px] resize-none")} value={form.subtitle} onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))} placeholder="Acesso ilimitado a descontos exclusivos..." maxLength={180} />
               </div>
 
-              {/* CTAs */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-ink">Texto do botão principal</label>
-                  <input className={inputCls} value={form.cta_text} onChange={(e) => setForm((f) => ({ ...f, cta_text: e.target.value }))} placeholder="Assinar agora" />
+              {/* Botão 1 */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-accent-500 text-[10px] font-bold text-white">1</span>
+                  Botão principal
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-muted">Texto</label>
+                    <input className={inputCls} value={form.cta_text} onChange={(e) => setForm((f) => ({ ...f, cta_text: e.target.value }))} placeholder="Assinar agora" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-muted">Link</label>
+                    <input className={inputCls} value={form.cta_link} onChange={(e) => setForm((f) => ({ ...f, cta_link: e.target.value }))} placeholder="#preco ou /auth/register" />
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-ink">Link do botão</label>
-                  <input className={inputCls} value={form.cta_link} onChange={(e) => setForm((f) => ({ ...f, cta_link: e.target.value }))} placeholder="#preco ou /auth/register" />
+                <p className="mt-1 text-[10px] text-ink-subtle">
+                  {!form.cta_text?.trim() || !form.cta_link?.trim()
+                    ? "⚠️ Texto e link devem ser preenchidos para o botão aparecer"
+                    : "✓ Botão visível no slide"}
+                </p>
+              </div>
+
+              {/* Botão 2 */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-200 text-[10px] font-bold text-brand-700">2</span>
+                  Botão secundário
+                  <span className="ml-1 rounded-full bg-surface-muted px-2 py-0.5 text-[10px] text-ink-subtle">opcional</span>
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-muted">Texto</label>
+                    <input className={inputCls} value={form.cta2_text} onChange={(e) => setForm((f) => ({ ...f, cta2_text: e.target.value }))} placeholder="Sou empresa" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-muted">Link</label>
+                    <input className={inputCls} value={form.cta2_link} onChange={(e) => setForm((f) => ({ ...f, cta2_link: e.target.value }))} placeholder="#empresas ou /auth/register?role=empresa" />
+                  </div>
                 </div>
+                <p className="mt-1 text-[10px] text-ink-subtle">
+                  {!form.cta2_text?.trim() || !form.cta2_link?.trim()
+                    ? "Deixe vazio para ocultar este botão no slide"
+                    : "✓ Botão 2 visível no slide"}
+                </p>
               </div>
 
               {/* Ordem + Status */}
