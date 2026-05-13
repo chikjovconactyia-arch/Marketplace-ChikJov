@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +34,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${inter.variable} ${jakarta.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <MobileBottomNav />
+      </body>
     </html>
   );
 }
