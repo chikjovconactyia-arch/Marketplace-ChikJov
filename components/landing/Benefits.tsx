@@ -13,17 +13,18 @@ const benefits = [
     title: "Telemedicina 24/7",
     desc: "Consulta médica online ilimitada incluída no seu plano. Para você e família.",
     color: "from-accent-100 to-accent-50 text-accent-700",
+    isComingSoon: true,
   },
   {
     icon: Gift,
     title: "Benefícios extras",
-    desc: "Mês a mês recebemos novidades: cashback, sorteios e experiências.",
+    desc: "Mês a mês recebemos novidades: sorteios e experiências.",
     color: "from-brand-100 to-brand-50 text-brand-700",
   },
   {
     icon: Headphones,
-    title: "Suporte humano",
-    desc: "Equipe pronta pra te ajudar de verdade — sem robôs e sem espera.",
+    title: "Suporte",
+    desc: "Suporte 24 / 7 com nossa agente de IA 'Any' e para o suporte humano em até 24 horas um de nossos consultores entrará em contato com você.",
     color: "from-accent-100 to-accent-50 text-accent-700",
   },
 ];
@@ -47,9 +48,16 @@ export function Benefits() {
             >
               <b.icon className="h-6 w-6" />
             </div>
-            <h3 className="font-display text-lg font-bold text-ink">
-              {b.title}
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-lg font-bold text-ink">
+                {b.title}
+              </h3>
+              {b.isComingSoon && (
+                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-700">
+                  Em Breve
+                </span>
+              )}
+            </div>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">
               {b.desc}
             </p>

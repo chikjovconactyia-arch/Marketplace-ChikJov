@@ -85,13 +85,13 @@ export function MarketplaceClient({ empresas, cidades, categorias, initialCity }
             Marketplace
           </span>
           <h1 className="heading-display mt-4 text-3xl text-balance md:text-5xl lg:text-6xl">
-            Centenas de empresas,{" "}
+            Descubra as melhores ofertas e{" "}
             <span className="bg-accent-gradient bg-clip-text text-transparent">
-              descontos reais
+              descontos da sua cidade.
             </span>
           </h1>
           <p className="mt-4 text-lg text-ink-muted text-balance">
-            Explore todos os parceiros do clube e gere vouchers exclusivos para assinantes.
+            Mais vantagens para você economizar no dia a dia.
           </p>
         </div>
 

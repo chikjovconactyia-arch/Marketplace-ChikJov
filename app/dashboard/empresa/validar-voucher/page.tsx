@@ -33,13 +33,13 @@ export default async function ValidarVoucherPage({ searchParams }: PageProps) {
     : { data: null };
 
   // Histórico de vouchers da empresa (ativos + usados recentes)
-  const [{ data: ativosCount }, { data: usadosCount }, { data: vouchersHist }] = await Promise.all([
+  const [ativosRes, usadosRes, vouchersHistRes] = await Promise.all([
     empresa
-      ? admin.from("vouchers").select("id", { count: "exact", head: true }).eq("company_id", empresa.id).eq("status", "active")
-      : Promise.resolve({ data: null, count: 0 }) as any,
+      ? admin.from("vouchers").select("id", { count: "exact", head: true }).eq("company_id", empresa.id)
+      : Promise.resolve({ count: 0 }),
     empresa
-      ? admin.from("vouchers").select("id", { count: "exact", head: true }).eq("company_id", empresa.id).eq("status", "used")
-      : Promise.resolve({ data: null, count: 0 }) as any,
+      ? admin.from("vouchers").select("offer_id, ofertas(price, discount_percent)", { count: "exact" }).eq("company_id", empresa.id).eq("status", "used")
+      : Promise.resolve({ data: [], count: 0 }),
     empresa
       ? admin
           .from("vouchers")
@@ -47,11 +47,22 @@ export default async function ValidarVoucherPage({ searchParams }: PageProps) {
           .eq("company_id", empresa.id)
           .order("validated_at", { ascending: false, nullsFirst: false })
           .limit(8)
-      : { data: [] },
+      : Promise.resolve({ data: [] }),
   ]);
 
-  const totalAtivos = (ativosCount as any)?.count ?? 0;
-  const totalUsados = (usadosCount as any)?.count ?? 0;
+  const totalGerados = ativosRes.count ?? 0;
+  const totalUsados = usadosRes.count ?? 0;
+  const vouchersHist = vouchersHistRes.data ?? [];
+  
+  // Calcula valor total recebido (preço - desconto)
+  const totalFinanceiro = (usadosRes.data as any[])?.reduce((acc, v) => {
+    const ofertaData = Array.isArray(v.ofertas) ? v.ofertas[0] : v.ofertas;
+    if (!ofertaData) return acc;
+    const price = Number(ofertaData.price) || 0;
+    const discount = Number(ofertaData.discount_percent) || 0;
+    const finalPrice = price - (price * (discount / 100));
+    return acc + finalPrice;
+  }, 0) ?? 0;
 
   // Enriquece histórico com nomes
   const userIds = (vouchersHist ?? []).map((v) => v.user_id).filter(Boolean) as string[];
@@ -79,9 +90,15 @@ export default async function ValidarVoucherPage({ searchParams }: PageProps) {
     .maybeSingle();
 
   const kpis = [
-    { label: "Vouchers ativos", value: totalAtivos, icon: Clock, bg: "bg-amber-100", color: "text-amber-700" },
+    { label: "Vouchers gerados", value: totalGerados, icon: Clock, bg: "bg-amber-100", color: "text-amber-700" },
     { label: "Já validados", value: totalUsados, icon: CheckCircle2, bg: "bg-emerald-100", color: "text-emerald-700" },
-    { label: "Total recebido", value: totalAtivos + totalUsados, icon: Ticket, bg: "bg-brand-100", color: "text-brand-700" },
+    { 
+      label: "Total recebido", 
+      value: `R$ ${totalFinanceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 
+      icon: Ticket, 
+      bg: "bg-brand-100", 
+      color: "text-brand-700" 
+    },
   ];
 
   return (

@@ -85,7 +85,7 @@ export function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-brand-100 pt-6 text-xs text-ink-subtle md:flex-row md:items-center">
-          <p>© {new Date().getFullYear()} ChikJov. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} Agência WebSic | ConectyIA | Todos os direitos reservados ChikJov.</p>
           <p>CNPJ 00.000.000/0001-00 • Feito com 💜 para empresas locais</p>
         </div>
       </div>

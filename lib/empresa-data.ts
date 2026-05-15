@@ -50,11 +50,7 @@ export async function fetchEmpresaKpis(userEmail: string): Promise<EmpresaKpis> 
   const empresaId = await resolveEmpresaId(userEmail);
   if (!empresaId) return { ofertasAtivas: 0, vouchersGerados: 0, vouchersValidados: 0, receitaGerada: 0 };
 
-  const [
-    { count: ofertasAtivas },
-    { count: vouchersGerados },
-    { data: vouchersUsados },
-  ] = await Promise.all([
+  const [ofertasRes, vouchersRes, usadosRes] = await Promise.all([
     supabase
       .from("ofertas")
       .select("*", { count: "exact", head: true })
@@ -66,14 +62,25 @@ export async function fetchEmpresaKpis(userEmail: string): Promise<EmpresaKpis> 
       .eq("company_id", empresaId),
     supabase
       .from("vouchers")
-      .select("economy_value")
+      .select("offer_id, ofertas(price, discount_percent)")
       .eq("company_id", empresaId)
       .eq("status", "used"),
   ]);
 
+  const ofertasAtivas = ofertasRes.count ?? 0;
+  const vouchersGerados = vouchersRes.count ?? 0;
+  const vouchersUsados = usadosRes.data ?? [];
+
   const vouchersValidados = vouchersUsados?.length ?? 0;
   const receitaGerada = (vouchersUsados ?? []).reduce(
-    (acc, v) => acc + (v.economy_value ?? 0),
+    (acc, v) => {
+      const ofertaData = Array.isArray(v.ofertas) ? v.ofertas[0] : v.ofertas;
+      if (!ofertaData) return acc;
+      const price = Number(ofertaData.price) || 0;
+      const discount = Number(ofertaData.discount_percent) || 0;
+      const finalPrice = price - (price * (discount / 100));
+      return acc + finalPrice;
+    },
     0
   );
 

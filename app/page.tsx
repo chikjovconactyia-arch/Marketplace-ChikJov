@@ -139,8 +139,8 @@ export default async function HomePage() {
       <main>
         <HeroCarousel slides={heroSlides} />
         <Partners partners={partners} />
-        <CompanyCarousel companies={realCompanies} />
         <HowItWorks />
+        <CompanyCarousel companies={realCompanies} />
         <Benefits />
         <Referral />
         <Pricing />

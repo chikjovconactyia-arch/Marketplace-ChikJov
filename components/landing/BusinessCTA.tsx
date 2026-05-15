@@ -116,13 +116,12 @@ export function BusinessCTA() {
         <div className="relative">
           <div className="absolute -inset-4 -z-10 rounded-3xl bg-accent-gradient opacity-20 blur-3xl" />
           <div
-            className="aspect-[4/5] overflow-hidden rounded-3xl bg-cover bg-center shadow-card"
+            className="aspect-[4/5] overflow-hidden rounded-3xl bg-cover bg-center shadow-card md:aspect-square lg:aspect-[4/5]"
             style={{
-              backgroundImage:
-                "url(https://images.unsplash.com/photo-1556745753-b2904692b3cd?w=800&q=80)",
+              backgroundImage: "url(/Plataforma-chikjov.png)",
             }}
           />
-          <div className="absolute -bottom-6 -right-4 rounded-2xl bg-white p-5 shadow-card md:-right-8">
+          <div className="absolute -bottom-6 -right-4 rounded-2xl bg-white p-5 shadow-card md:-right-6 md:bottom-10 lg:-right-8 lg:-bottom-6">
             <p className="text-xs text-ink-muted">Leads esse mês</p>
             <p className="font-display text-3xl font-bold text-brand-700">+1.247</p>
             <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-accent-600">

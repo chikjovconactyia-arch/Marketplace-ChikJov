@@ -25,12 +25,50 @@ export const revalidate = 60;
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
-    : { data: null };
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !userData?.user) {
+    console.error("Erro de autenticação no dashboard admin:", authError);
+    return <div>Erro de autenticação. Por favor, faça login novamente.</div>;
+  }
 
-  // Fetch all data in parallel
+  const user = userData.user;
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("Erro ao carregar perfil do admin:", profileError);
+  }
+
+  // Fetch all data in parallel with error handling
+  let dashboardData;
+  try {
+    dashboardData = await Promise.all([
+      fetchAdminKpis(),
+      fetchRecentCompanies(),
+      fetchPendingCompanies(),
+      fetchTodayVouchers(),
+      fetchReferralStats(),
+      fetchFinancialSummary(),
+      fetchMonthlyChartData(),
+      fetchCategoryDistribution(),
+    ]);
+  } catch (err) {
+    console.error("Erro fatal ao carregar dados do dashboard admin:", err);
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-xl font-bold text-red-600">Erro Interno do Servidor (500)</h1>
+        <p className="mt-2 text-ink-muted">Ocorreu um erro ao processar os dados do dashboard. Verifique os logs do servidor.</p>
+        <pre className="mt-4 inline-block rounded bg-surface-muted p-4 text-left text-xs">
+          {err instanceof Error ? err.message : String(err)}
+        </pre>
+      </div>
+    );
+  }
+
   const [
     kpis,
     recentCompanies,
@@ -40,16 +78,7 @@ export default async function AdminDashboardPage() {
     financial,
     chartData,
     categoryData,
-  ] = await Promise.all([
-    fetchAdminKpis(),
-    fetchRecentCompanies(),
-    fetchPendingCompanies(),
-    fetchTodayVouchers(),
-    fetchReferralStats(),
-    fetchFinancialSummary(),
-    fetchMonthlyChartData(),
-    fetchCategoryDistribution(),
-  ]);
+  ] = dashboardData;
 
   const kpiCards = [
     {

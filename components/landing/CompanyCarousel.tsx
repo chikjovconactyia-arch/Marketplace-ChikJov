@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MapPin, Package, ArrowRight } from "lucide-react";
+import { MapPin, Package, ArrowRight } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { mockCompanies } from "@/lib/mock-data";
 
@@ -20,8 +20,6 @@ interface Props {
 }
 
 export function CompanyCarousel({ companies }: Props) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-
   // Usa dados reais se disponíveis; caso contrário usa mock
   const items: CompanyCard[] =
     companies && companies.length > 0
@@ -35,27 +33,32 @@ export function CompanyCarousel({ companies }: Props) {
           city: null,
         }));
 
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -(el.clientWidth * 0.8) : el.clientWidth * 0.8, behavior: "smooth" });
-  };
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Duplicamos os itens para criar o efeito de loop infinito
+  const marqueeItems = [...items, ...items];
 
   return (
     <Section
       eyebrow="Marketplace"
-      title="Centenas de empresas, descontos reais"
-      description="Explore os parceiros mais procurados do clube. Toda semana novas marcas entram com ofertas exclusivas para assinantes."
+      title="Descubra as melhores ofertas e descontos da sua cidade."
+      description="Mais vantagens para você economizar no dia a dia."
       background="white"
     >
-      <div className="relative">
+      <div
+        className="mask-fade-x relative overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
         <div
-          ref={scrollerRef}
-          className="flex gap-5 overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex w-max animate-scroll gap-5 pb-4"
+          style={{ animationPlayState: isPaused ? "paused" : "running" }}
         >
-          {items.map((c) => (
+          {marqueeItems.map((c, idx) => (
             <article
-              key={c.id}
+              key={`${c.id}-${idx}`}
               className="group flex w-[280px] shrink-0 flex-col overflow-hidden rounded-2xl bg-white shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(124,58,237,0.15)] sm:w-[300px]"
             >
               {/* Imagem */}
@@ -109,31 +112,25 @@ export function CompanyCarousel({ companies }: Props) {
             </article>
           ))}
         </div>
+      </div>
 
-        {/* Controles */}
-        <div className="mt-6 flex justify-center gap-2">
-          <button
-            onClick={() => scroll("left")}
-            aria-label="Anterior"
-            className="grid h-11 w-11 place-items-center rounded-full bg-white text-brand-700 shadow-card transition-colors hover:bg-brand-50"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            aria-label="Próximo"
-            className="grid h-11 w-11 place-items-center rounded-full bg-white text-brand-700 shadow-card transition-colors hover:bg-brand-50"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Indicador de origem dos dados */}
+      {/* Indicador de origem dos dados */}
+      <div className="mt-6 flex flex-col items-center gap-4">
         {companies && companies.length > 0 && (
-          <p className="mt-4 text-center text-xs text-ink-subtle">
+          <p className="text-center text-xs text-ink-subtle">
             {companies.length} empresa{companies.length !== 1 ? "s" : ""} parceira{companies.length !== 1 ? "s" : ""} no clube
           </p>
         )}
+
+        <Link
+          href="/marketplace"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-3 text-sm font-bold text-white shadow-cta transition-all hover:scale-105 hover:shadow-brand-500/25 active:scale-95"
+        >
+          Clube de Vantagens ChikJov
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </Section>
   );
