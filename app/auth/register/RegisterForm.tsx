@@ -7,6 +7,16 @@ import { cn } from "@/lib/utils";
 
 type Role = "cliente" | "empresa";
 
+const CIDADES_RMBH = [
+  "Belo Horizonte", "Betim", "Contagem", "Ribeirão das Neves", "Santa Luzia", 
+  "Ibirité", "Sabará", "Vespasiano", "Nova Lima", "Caeté", "Igarapé", 
+  "São José da Lapa", "Mário Campos", "Confins", "Esmeraldas", "Florestal", 
+  "Itaguara", "Itatiaiuçu", "Jaboticatubas", "Nova União", "Pedro Leopoldo", 
+  "Raposos", "Rio Acima", "Taquaraçu de Minas", "Sarzedo", "São Joaquim de Bicas", 
+  "Mateus Leme", "Juatuba", "Baldim", "Capim Branco", "Matozinhos", "Rio Manso", 
+  "Brumadinho", "Barão de Cocais", "Bom Jesus do Amparo", "Itabirito", "Sete Lagoas", "São Gonçalo do Rio Abaixo"
+];
+
 export function RegisterForm({
   initialRole,
   referralSlug,
@@ -97,6 +107,20 @@ export function RegisterForm({
           minLength={8}
           placeholder="Mínimo 8 caracteres"
         />
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-ink">Cidade</span>
+          <select
+            name="city"
+            className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm text-ink placeholder-ink-subtle outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          >
+            <option value="" disabled selected>Selecione uma cidade</option>
+            <option value="Todas as cidades">Todas as cidades</option>
+            {CIDADES_RMBH.sort().map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </label>
 
         <button
           type="submit"

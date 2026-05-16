@@ -28,7 +28,7 @@ export function Partners({ partners }: Props) {
             Empresas que confiam no ChikJov
           </p>
           <div className="mask-fade-x mt-6 overflow-hidden">
-            <div className="flex w-max animate-scroll items-center gap-12">
+            <div className="flex w-max animate-scroll hover:[animation-play-state:paused] items-center gap-12">
               {logos.map((name, i) => (
                 <div
                   key={i}
@@ -60,7 +60,7 @@ export function Partners({ partners }: Props) {
 
         {/* Carrossel marquee */}
         <div className="mask-fade-x mt-8 overflow-hidden">
-          <div className="flex w-max animate-scroll items-stretch gap-4">
+          <div className="flex w-max animate-scroll hover:[animation-play-state:paused] items-stretch gap-4">
             {items.map((p, i) => (
               <Link
                 key={`${p.id}-${i}`}

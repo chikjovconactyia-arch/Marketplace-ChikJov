@@ -158,8 +158,19 @@ const emptyForm = {
   image_url: "", mobile_image_url: "",
   cta_text: "Assinar agora", cta_link: "#preco",
   cta2_text: "", cta2_link: "",
+  city: "",
   order: 0, active: true,
 };
+
+const CIDADES_RMBH = [
+  "Belo Horizonte", "Betim", "Contagem", "Ribeirão das Neves", "Santa Luzia", 
+  "Ibirité", "Sabará", "Vespasiano", "Nova Lima", "Caeté", "Igarapé", 
+  "São José da Lapa", "Mário Campos", "Confins", "Esmeraldas", "Florestal", 
+  "Itaguara", "Itatiaiuçu", "Jaboticatubas", "Nova União", "Pedro Leopoldo", 
+  "Raposos", "Rio Acima", "Taquaraçu de Minas", "Sarzedo", "São Joaquim de Bicas", 
+  "Mateus Leme", "Juátuba", "Baldim", "Capim Branco", "Matozinhos", "Rio Manso", 
+  "Brumadinho", "Barão de Cocais", "Bom Jesus do Amparo", "Itabirito", "Sete Lagoas", "São Gonçalo do Rio Abaixo"
+];
 
 function SlideModal({
   editing,
@@ -182,6 +193,7 @@ function SlideModal({
           cta_link: editing.cta_link ?? "#preco",
           cta2_text: editing.cta2_text ?? "",
           cta2_link: editing.cta2_link ?? "",
+          city: editing.city ?? "",
           order: editing.order,
           active: editing.active,
         }
@@ -213,6 +225,7 @@ function SlideModal({
     cta_link: form.cta_link || null,
     cta2_text: form.cta2_text || null,
     cta2_link: form.cta2_link || null,
+    city: form.city || null,
     active: form.active,
     order: form.order,
   };
@@ -309,10 +322,25 @@ function SlideModal({
                 </div>
               </div>
 
-              {/* Badge */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-ink">Badge (opcional)</label>
-                <input className={inputCls} value={form.badge} onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))} placeholder="Ex: Clube de Vantagens" maxLength={40} />
+              {/* Badge e Cidade */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">Badge (opcional)</label>
+                  <input className={inputCls} value={form.badge} onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))} placeholder="Ex: Clube de Vantagens" maxLength={40} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-ink">Cidade alvo</label>
+                  <select 
+                    className={inputCls} 
+                    value={form.city} 
+                    onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                  >
+                    <option value="">Todas as cidades (Global)</option>
+                    {CIDADES_RMBH.sort().map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Título */}
@@ -700,7 +728,7 @@ export function HeroSlidesClient({ slides: initialSlides }: { slides: HeroSlide[
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E4F3] bg-surface-soft">
-                {["", "Preview", "Título", "Badge", "Status", "Posição", "Ações"].map((h) => (
+                {["", "Preview", "Título", "Badge", "Cidade", "Status", "Posição", "Ações"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-subtle">{h}</th>
                 ))}
               </tr>
@@ -731,6 +759,13 @@ export function HeroSlidesClient({ slides: initialSlides }: { slides: HeroSlide[
                     {slide.badge ? (
                       <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700">{slide.badge}</span>
                     ) : <span className="text-ink-subtle">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap">
+                    {slide.city ? (
+                      <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-brand-400"></span>{slide.city}</span>
+                    ) : (
+                      "Todas as cidades"
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold",

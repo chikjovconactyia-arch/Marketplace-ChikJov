@@ -82,18 +82,11 @@ export function Sidebar() {
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5">
-          <Link href="/dashboard/admin" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg shadow-brand-900/50">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="block font-display text-lg font-bold tracking-tight text-white">
-                ChikJov
-              </span>
-              <span className="block text-[10px] font-medium uppercase tracking-widest text-brand-400">
-                Admin
-              </span>
-            </div>
+          <Link href="/dashboard/admin" className="flex flex-col gap-1 items-start">
+            <img src="/logo-chikjov.png" alt="ChikJov" className="h-8 w-auto" />
+            <span className="block text-[10px] font-medium uppercase tracking-widest text-brand-400">
+              Painel do Admin
+            </span>
           </Link>
           <button
             onClick={close}

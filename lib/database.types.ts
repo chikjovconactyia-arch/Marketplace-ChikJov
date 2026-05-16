@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -196,6 +196,7 @@ export type Database = {
         Row: {
           active: boolean
           badge: string | null
+          city: string | null
           created_at: string
           cta_link: string | null
           cta_text: string | null
@@ -212,6 +213,7 @@ export type Database = {
         Insert: {
           active?: boolean
           badge?: string | null
+          city?: string | null
           created_at?: string
           cta_link?: string | null
           cta_text?: string | null
@@ -228,6 +230,7 @@ export type Database = {
         Update: {
           active?: boolean
           badge?: string | null
+          city?: string | null
           created_at?: string
           cta_link?: string | null
           cta_text?: string | null

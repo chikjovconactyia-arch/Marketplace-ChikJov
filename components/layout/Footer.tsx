@@ -36,12 +36,7 @@ export function Footer() {
         <div className="grid gap-10 lg:grid-cols-5 lg:gap-12">
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-gradient text-white">
-                <Sparkles className="h-5 w-5" />
-              </span>
-              <span className="font-display text-xl font-bold text-brand-700">
-                ChikJov
-              </span>
+              <img src="/logo-chikjov.png" alt="ChikJov" className="h-10 w-auto" />
             </Link>
             <p className="mt-4 max-w-sm text-sm text-ink-muted">
               O clube de vantagens que conecta empresas locais a clientes que

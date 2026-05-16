@@ -13,6 +13,7 @@ export interface HeroSlideInput {
   cta_link: string;
   cta2_text: string;
   cta2_link: string;
+  city: string;
   order: number;
   active: boolean;
 }
@@ -45,6 +46,7 @@ export async function createHeroSlideAction(data: HeroSlideInput): Promise<Slide
       cta_link: data.cta_link || null,
       cta2_text: data.cta2_text || null,
       cta2_link: data.cta2_link || null,
+      city: data.city || null,
       order: data.order ?? 0,
       active: data.active ?? true,
     })
@@ -76,6 +78,7 @@ export async function updateHeroSlideAction(id: string, data: HeroSlideInput): P
       cta_link: data.cta_link || null,
       cta2_text: data.cta2_text || null,
       cta2_link: data.cta2_link || null,
+      city: data.city || null,
       order: data.order ?? 0,
       active: data.active ?? true,
     })
@@ -133,6 +136,7 @@ export async function duplicateHeroSlideAction(id: string): Promise<SlideResult>
       cta_link: original.cta_link ?? null,
       cta2_text: original.cta2_text ?? null,
       cta2_link: original.cta2_link ?? null,
+      city: original.city ?? null,
       active: false,
       order: (original.order ?? 0) + 1,
     })

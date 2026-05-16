@@ -15,14 +15,22 @@ export const metadata = {
 
 export const revalidate = 300;
 
-async function fetchHeroSlides(): Promise<HeroSlide[]> {
+async function fetchHeroSlides(userCity?: string | null): Promise<HeroSlide[]> {
   try {
     const admin = createAdminClient();
-    const { data } = await admin
+    let query = admin
       .from("hero_slides")
-      .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, active, order, created_at, updated_at")
+      .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, city, active, order, created_at, updated_at")
       .eq("active", true)
       .order("order", { ascending: true });
+
+    if (userCity) {
+      query = query.or(`city.is.null,city.eq.${userCity}`);
+    } else {
+      query = query.is("city", null);
+    }
+
+    const { data } = await query;
     return (data ?? []) as HeroSlide[];
   } catch { return []; }
 }
@@ -117,7 +125,7 @@ export default async function MarketplacePage() {
   }
 
   const [heroSlides, partners, empresas] = await Promise.all([
-    fetchHeroSlides(),
+    fetchHeroSlides(userCity),
     fetchPartners(),
     fetchEmpresasComOfertas(),
   ]);

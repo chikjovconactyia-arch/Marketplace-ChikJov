@@ -16,6 +16,7 @@ export interface HeroSlide {
   cta2_link: string | null;
   image_url: string;
   mobile_image_url?: string | null;
+  city?: string | null;
   active: boolean;
   order: number;
 }

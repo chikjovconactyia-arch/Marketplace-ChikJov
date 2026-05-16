@@ -69,6 +69,7 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
   const phone = String(formData.get("phone") ?? "").trim();
   const role = String(formData.get("role") ?? "cliente") as UserRole;
   const empresaName = String(formData.get("empresaName") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
   const cookieStore = await cookies();
   const referralSlug =
     String(formData.get("ref") ?? "").trim() ||
@@ -113,6 +114,7 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
       role,
       full_name: fullName,
       phone: phone || null,
+      city: city && city !== "Todas as cidades" ? city : null,
       subscription_status: "inactive",
     },
     { onConflict: "id" }
