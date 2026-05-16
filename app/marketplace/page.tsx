@@ -20,7 +20,7 @@ async function fetchHeroSlides(userCity?: string | null): Promise<HeroSlide[]> {
     const admin = createAdminClient();
     let query = admin
       .from("hero_slides")
-      .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, city, active, order, created_at, updated_at")
+      .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, logo_image_url, city, active, order, created_at, updated_at")
       .eq("active", true)
       .order("order", { ascending: true });
 

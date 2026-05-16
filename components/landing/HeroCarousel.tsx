@@ -16,6 +16,7 @@ export interface HeroSlide {
   cta2_link: string | null;
   image_url: string;
   mobile_image_url?: string | null;
+  logo_image_url?: string | null;
   city?: string | null;
   active: boolean;
   order: number;
@@ -107,11 +108,12 @@ export function HeroCarousel({ slides }: Props) {
   return (
     <section
       className={cn(
-        "relative w-full overflow-hidden bg-[#0A0A0F]",
-        // Mobile: aspect-ratio 4:5 vertical (estilo Instagram/TikTok)
-        "aspect-[4/5] sm:aspect-[16/10]",
-        // Desktop: altura fixa wide
-        "md:aspect-auto md:h-[82vh] md:max-h-[760px]"
+        "relative w-full",
+        // Mobile: pt-[116px] = header(100px) + 16px gap — cria espaço total correto
+        // O card usa mt-[-116px] para subir sobre o header, então a section
+        // começa com recuo de 116px para manter o layout visualmente correto
+        "pt-[116px] pb-6 md:pt-0 md:pb-0 md:overflow-hidden",
+        "md:bg-[#0A0A0F]"
       )}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -119,214 +121,272 @@ export function HeroCarousel({ slides }: Props) {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Background slides — usa <picture> para carregar imagem correta por device */}
-      {active.map((s, i) => {
-        const desktopSrc = s.image_url;
-        const mobileSrc = s.mobile_image_url ?? s.image_url; // fallback p/ desktop se mobile não existir
-        return (
-          <div
-            key={s.id}
-            aria-hidden={i !== current}
-            className={cn(
-              "absolute inset-0 transition-opacity duration-700 ease-in-out",
-              i === current && !transitioning ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <picture>
-              {/* Mobile (até 767px) — imagem vertical 1080×1350 */}
-              <source media="(max-width: 767px)" srcSet={mobileSrc} />
-              {/* Desktop — imagem horizontal 1920×700 */}
-              <source media="(min-width: 768px)" srcSet={desktopSrc} />
-              <img
-                src={desktopSrc}
-                alt={s.title}
-                loading={i === 0 ? "eager" : "lazy"}
-                fetchPriority={i === 0 ? "high" : "auto"}
-                className={cn(
-                  "absolute inset-0 h-full w-full object-cover",
-                  i === current ? "scale-[1.04]" : "scale-100"
-                )}
-                style={{ transition: "transform 8s ease-out" }}
-              />
-            </picture>
-            {/* Mobile: gradiente forte na parte inferior para legibilidade do texto */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent md:hidden" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/70 to-transparent md:hidden" />
-            {/* Desktop: overlay + gradiente lateral para o texto */}
-            <div className="absolute inset-0 hidden bg-black/30 md:block" />
-            <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
-            <div className="absolute inset-0 hidden bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent md:block" />
-          </div>
-        );
-      })}
+      <div className={cn(
+        "relative mx-auto overflow-hidden transition-all duration-500",
+        // Mobile: card sobe SOBRE o header (h=[100px]) com margem negativa
+        // mt-[-137px] = header(100px) + 16px gap + 21px a mais (≈10% do card)
+        // z-[60] garante que fica acima do header (z-50)
+        "w-[calc(100%-2rem)] max-w-[500px] h-[210px] rounded-[24px]",
+        "shadow-[0_20px_60px_rgba(101,40,167,0.35),0_0_0_1px_rgba(255,255,255,0.12)]",
+        "mt-[-137px] mx-auto z-[60]",
+        // Desktop: hero banner full width
+        "md:w-full md:max-w-none md:h-[82vh] md:max-h-[760px] md:rounded-none md:shadow-none md:mt-0 md:z-auto"
+      )}>
+        {/* Background slides */}
+        {active.map((s, i) => {
+          const desktopSrc = s.image_url;
+          const mobileSrc = s.mobile_image_url ?? s.image_url; // fallback p/ desktop se mobile não existir
+          return (
+            <div
+              key={s.id}
+              aria-hidden={i !== current}
+              className={cn(
+                "absolute inset-0 transition-opacity duration-700 ease-in-out",
+                i === current && !transitioning ? "opacity-100 z-0" : "opacity-0 -z-10"
+              )}
+            >
+              <picture>
+                {/* Mobile (até 767px) — imagem mobile */}
+                <source media="(max-width: 767px)" srcSet={mobileSrc} />
+                {/* Desktop — imagem horizontal */}
+                <source media="(min-width: 768px)" srcSet={desktopSrc} />
+                <img
+                  src={desktopSrc}
+                  alt={s.title}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : "auto"}
+                  className={cn(
+                    "absolute inset-0 h-full w-full object-cover",
+                    i === current ? "scale-[1.04]" : "scale-100"
+                  )}
+                  style={{ transition: "transform 8s ease-out" }}
+                />
+              </picture>
+              {/* Mobile overlays: Gradiente escuro garantindo contraste no card */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F]/95 via-[#0A0A0F]/70 to-[#0A0A0F]/30 md:hidden" />
+              
+              {/* Desktop overlays */}
+              <div className="absolute inset-0 hidden bg-black/30 md:block" />
+              <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
+              <div className="absolute inset-0 hidden bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent md:block" />
+            </div>
+          );
+        })}
 
-      {/* Content */}
-      <div className="relative flex h-full items-end md:items-center">
-        <div className="container-tight w-full">
-          <div
-            className="mx-auto w-full max-w-2xl text-center md:ml-0 md:text-left pb-14 sm:pb-16 md:pb-0"
-          >
-            {/* Badge */}
+        {/* Content Mobile */}
+        <div className="absolute inset-0 flex items-center p-5 gap-4 md:hidden z-10">
+          {slide.logo_image_url && (
+            <div className={cn(
+              "flex-shrink-0 w-[84px] h-[84px] rounded-full border-[3px] border-white/10 overflow-hidden shadow-2xl bg-white",
+              "transition-all duration-500 delay-75",
+              transitioning ? "opacity-0 scale-90" : "opacity-100 scale-100"
+            )}>
+              <img src={slide.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
             {slide.badge && (
               <div
                 className={cn(
-                  "mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md",
-                  "px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white",
-                  "md:mb-5 md:gap-2 md:px-4 md:py-1.5 md:text-xs",
+                  "mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur-sm shadow-sm",
                   "transition-all duration-500",
-                  transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+                  transitioning ? "opacity-0 translate-x-2" : "opacity-100 translate-x-0"
                 )}
               >
-                <Sparkles className="h-2.5 w-2.5 text-accent-400 md:h-3 md:w-3" />
+                <Sparkles className="h-2.5 w-2.5 text-accent-400" />
                 {slide.badge}
               </div>
             )}
-
-            {/* Title */}
-            <h1
+            <h2
               className={cn(
-                "font-display font-bold leading-tight text-white drop-shadow-2xl",
-                "text-xl sm:text-2xl md:text-5xl lg:text-6xl",
-                "transition-all duration-500 delay-75",
-                transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                "font-display text-[17px] leading-[1.15] font-bold text-white line-clamp-2 drop-shadow-md",
+                "transition-all duration-500 delay-100",
+                transitioning ? "opacity-0 translate-x-2" : "opacity-100 translate-x-0"
               )}
             >
               {slide.title}
-            </h1>
-
-            {/* Subtitle — oculto no mobile menor, visível no sm+ */}
+            </h2>
             {slide.subtitle && (
               <p
                 className={cn(
-                  "mx-auto mt-2 text-white/80 leading-relaxed md:ml-0",
-                  "hidden sm:block sm:text-sm md:text-lg",
-                  "max-w-[90%] sm:max-w-lg md:max-w-xl",
+                  "mt-1.5 text-[11px] text-white/80 line-clamp-2 leading-snug drop-shadow-sm",
                   "transition-all duration-500 delay-150",
-                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                  transitioning ? "opacity-0 translate-x-2" : "opacity-100 translate-x-0"
                 )}
               >
                 {slide.subtitle}
               </p>
             )}
-
-            {/* Subtitle curto no mobile */}
-            {slide.subtitle && (
-              <p
-                className={cn(
-                  "mx-auto mt-2 text-xs text-white/75 leading-snug",
-                  "block sm:hidden",
-                  "max-w-[85%]",
-                  "transition-all duration-500 delay-150",
-                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
-                )}
-              >
-                {slide.subtitle.length > 80 ? slide.subtitle.slice(0, 80) + "…" : slide.subtitle}
-              </p>
-            )}
-
-            {/* CTAs — só exibe se texto E link estiverem preenchidos */}
-            {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
+            {slide.cta_text && slide.cta_link && (
               <div
                 className={cn(
-                  "mt-4 flex flex-col items-center gap-2 md:mt-8 md:flex-row md:justify-start",
-                  "sm:flex-row sm:justify-center sm:gap-3",
+                  "mt-3",
                   "transition-all duration-500 delay-200",
-                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                  transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
                 )}
               >
-                {/* Botão 1 — só aparece se texto e link preenchidos */}
-                {slide.cta_text?.trim() && slide.cta_link?.trim() && (
-                  <Link
-                    href={slide.cta_link}
-                    className={cn(
-                      "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
-                      "h-10 w-full px-5 text-sm",
-                      "sm:h-12 sm:w-auto sm:px-7",
-                      "md:h-14 md:px-8 md:text-base"
-                    )}
-                  >
-                    {slide.cta_text}
-                  </Link>
-                )}
-                {/* Botão 2 — só aparece se texto e link preenchidos */}
-                {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
-                  <Link
-                    href={slide.cta2_link}
-                    className={cn(
-                      "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
-                      "h-10 w-full px-5 text-sm",
-                      "sm:h-12 sm:w-auto sm:px-7",
-                      "md:h-14 md:px-8 md:text-base"
-                    )}
-                  >
-                    {slide.cta2_text}
-                  </Link>
-                )}
+                <Link
+                  href={slide.cta_link}
+                  className="inline-flex h-8 items-center justify-center rounded-full bg-accent-500 px-5 text-[11px] font-bold tracking-wide text-white shadow-cta transition-all hover:bg-accent-600 hover:scale-105 active:scale-95"
+                >
+                  {slide.cta_text}
+                </Link>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Arrows — ocultas no mobile (usa swipe), visíveis md+ */}
-      {active.length > 1 && (
-        <>
-          <button
-            onClick={prev}
-            aria-label="Anterior"
-            className="hidden md:grid absolute left-8 top-1/2 z-20 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            onClick={next}
-            aria-label="Próximo"
-            className="hidden md:grid absolute right-8 top-1/2 z-20 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-        </>
-      )}
-
-      {/* Bottom controls */}
-      {active.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 z-20 flex flex-col items-center gap-2 md:bottom-7 md:gap-3">
-          {/* Progress bar — apenas desktop */}
-          <div className="hidden h-0.5 w-32 overflow-hidden rounded-full bg-white/20 md:block">
-            <div
-              className="h-full rounded-full bg-accent-500 transition-none"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Counter — apenas desktop */}
-            <span className="hidden font-mono text-xs font-semibold text-white/60 md:block">
-              {String(current + 1).padStart(2, "0")} / {String(active.length).padStart(2, "0")}
-            </span>
-
-            {/* Dots — maiores no mobile para toque fácil */}
-            <div className="flex items-center gap-2.5">
-              {active.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => go(i)}
-                  aria-label={`Slide ${i + 1}`}
-                  // Área de toque grande no mobile
-                  className="flex items-center justify-center p-1"
+        {/* Content Desktop */}
+        <div className="absolute inset-0 hidden md:flex h-full items-center pointer-events-none z-10">
+          <div className="container-tight w-full pointer-events-auto">
+            <div className="mx-auto w-full max-w-2xl text-left pb-0">
+              {slide.badge && (
+                <div
+                  className={cn(
+                    "mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md",
+                    "px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white",
+                    "transition-all duration-500",
+                    transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+                  )}
                 >
-                  <span
-                    className={cn(
-                      "block rounded-full transition-all duration-300",
-                      i === current
-                        ? "h-2 w-7 bg-white md:w-6"
-                        : "h-2 w-2 bg-white/40 hover:bg-white/70"
-                    )}
-                  />
-                </button>
-              ))}
+                  <Sparkles className="h-3 w-3 text-accent-400" />
+                  {slide.badge}
+                </div>
+              )}
+
+              <h1
+                className={cn(
+                  "font-display font-bold leading-tight text-white drop-shadow-2xl",
+                  "text-5xl lg:text-6xl",
+                  "transition-all duration-500 delay-75",
+                  transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                )}
+              >
+                {slide.title}
+              </h1>
+
+              {slide.subtitle && (
+                <p
+                  className={cn(
+                    "mt-2 text-white/80 leading-relaxed",
+                    "text-lg max-w-xl",
+                    "transition-all duration-500 delay-150",
+                    transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                  )}
+                >
+                  {slide.subtitle}
+                </p>
+              )}
+
+              {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
+                <div
+                  className={cn(
+                    "mt-8 flex flex-row justify-start gap-3",
+                    "transition-all duration-500 delay-200",
+                    transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+                  )}
+                >
+                  {slide.cta_text?.trim() && slide.cta_link?.trim() && (
+                    <Link
+                      href={slide.cta_link}
+                      className={cn(
+                        "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
+                        "h-14 px-8 text-base"
+                      )}
+                    >
+                      {slide.cta_text}
+                    </Link>
+                  )}
+                  {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
+                    <Link
+                      href={slide.cta2_link}
+                      className={cn(
+                        "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
+                        "h-14 px-8 text-base"
+                      )}
+                    >
+                      {slide.cta2_text}
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Desktop Controls (Arrows & Progress) */}
+        {active.length > 1 && (
+          <div className="hidden md:block z-20">
+            <button
+              onClick={prev}
+              aria-label="Anterior"
+              className="absolute left-8 top-1/2 -translate-y-1/2 h-12 w-12 grid place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60 pointer-events-auto"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={next}
+              aria-label="Próximo"
+              className="absolute right-8 top-1/2 -translate-y-1/2 h-12 w-12 grid place-items-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-black/60 pointer-events-auto"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+
+            <div className="absolute bottom-7 left-0 right-0 flex flex-col items-center gap-3">
+              <div className="h-0.5 w-32 overflow-hidden rounded-full bg-white/20">
+                <div
+                  className="h-full rounded-full bg-accent-500 transition-none"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-xs font-semibold text-white/60">
+                  {String(current + 1).padStart(2, "0")} / {String(active.length).padStart(2, "0")}
+                </span>
+                <div className="flex items-center gap-2.5 pointer-events-auto">
+                  {active.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => go(i)}
+                      aria-label={`Slide ${i + 1}`}
+                      className="flex items-center justify-center p-1"
+                    >
+                      <span
+                        className={cn(
+                          "block rounded-full transition-all duration-300",
+                          i === current ? "h-2 w-6 bg-white" : "h-2 w-2 bg-white/40 hover:bg-white/70"
+                        )}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Controls (Dots below the card) */}
+      {active.length > 1 && (
+        <div className="flex md:hidden justify-center items-center gap-2.5 pt-3 pb-2 z-[60] relative">
+          {active.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => go(i)}
+              aria-label={`Slide ${i + 1}`}
+              className="flex items-center justify-center p-1"
+            >
+              <span
+                className={cn(
+                  "block rounded-full transition-all duration-300",
+                  i === current
+                    ? "h-2 w-7 bg-brand-600"
+                    : "h-2 w-2 bg-brand-200 hover:bg-brand-300"
+                )}
+              />
+            </button>
+          ))}
         </div>
       )}
     </section>

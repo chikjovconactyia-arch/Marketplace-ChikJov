@@ -155,7 +155,7 @@ function SlidePreview({ slide, device = "desktop" }: { slide: HeroSlide; device?
 // ─── Form Modal ───────────────────────────────────────────────────────────────
 const emptyForm = {
   title: "", subtitle: "", badge: "",
-  image_url: "", mobile_image_url: "",
+  image_url: "", mobile_image_url: "", logo_image_url: "",
   cta_text: "Assinar agora", cta_link: "#preco",
   cta2_text: "", cta2_link: "",
   city: "",
@@ -189,6 +189,7 @@ function SlideModal({
           badge: editing.badge ?? "",
           image_url: editing.image_url,
           mobile_image_url: editing.mobile_image_url ?? "",
+          logo_image_url: editing.logo_image_url ?? "",
           cta_text: editing.cta_text ?? "Assinar agora",
           cta_link: editing.cta_link ?? "#preco",
           cta2_text: editing.cta2_text ?? "",
@@ -221,6 +222,7 @@ function SlideModal({
     badge: form.badge || null,
     image_url: form.image_url,
     mobile_image_url: form.mobile_image_url || null,
+    logo_image_url: form.logo_image_url || null,
     cta_text: form.cta_text || null,
     cta_link: form.cta_link || null,
     cta2_text: form.cta2_text || null,
@@ -312,13 +314,25 @@ function SlideModal({
                 {/* Mobile */}
                 <div>
                   <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
-                    📱 Imagem Mobile
+                    📱 Imagem Mobile (Fundo)
                     <span className="ml-auto rounded-md bg-accent-50 px-1.5 py-0.5 text-[10px] font-bold text-accent-700">
                       1080 × 1350
                     </span>
                   </label>
                   <ImageUpload value={form.mobile_image_url} onChange={(url) => setForm((f) => ({ ...f, mobile_image_url: url }))} />
-                  <p className="mt-1.5 text-[10px] text-ink-subtle">Vertical estilo Instagram (opcional — usa desktop se vazio)</p>
+                  <p className="mt-1.5 text-[10px] text-ink-subtle">Fundo vertical para mobile (opcional)</p>
+                </div>
+
+                {/* Logo */}
+                <div>
+                  <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
+                    ⭐ Logo / Imagem Principal (Mobile)
+                    <span className="ml-auto rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">
+                      Circulo / 1:1
+                    </span>
+                  </label>
+                  <ImageUpload value={form.logo_image_url} onChange={(url) => setForm((f) => ({ ...f, logo_image_url: url }))} />
+                  <p className="mt-1.5 text-[10px] text-ink-subtle">Aparece do lado esquerdo do card no layout mobile</p>
                 </div>
               </div>
 

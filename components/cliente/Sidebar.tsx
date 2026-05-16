@@ -68,7 +68,7 @@ export function Sidebar({ avatarUrl, userName }: SidebarProps = {}) {
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5">
           <Link href="/dashboard/cliente" className="flex flex-col gap-1 items-start">
-            <img src="/logo-chikjov.png" alt="ChikJov" className="h-8 w-auto" />
+            <img src="/logo-2-chikjov.png" alt="ChikJov" className="h-8 w-auto brightness-0 invert" />
             <span className="block text-[10px] font-medium uppercase tracking-widest text-brand-400">
               Painel do Cliente
             </span>

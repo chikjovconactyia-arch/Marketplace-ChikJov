@@ -98,10 +98,10 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-brand-100/60 bg-white/80 backdrop-blur-md">
-      <div className="container-tight flex h-16 items-center justify-between md:h-20">
+    <header className="sticky top-0 z-50 bg-[#6528a7] text-white border-b border-[#6528a7]">
+      <div className="container-tight flex h-[100px] items-center justify-between md:h-20">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo-chikjov.png" alt="ChikJov" className="h-10 w-auto" />
+          <img src="/logo-2-chikjov.png" alt="ChikJov" className="h-10 w-auto brightness-0 invert" />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -109,7 +109,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-ink-muted transition-colors hover:text-brand-700"
+              className="text-sm font-medium text-white/80 transition-colors hover:text-white"
             >
               {l.label}
             </Link>
@@ -119,11 +119,11 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
         <div className="flex items-center gap-3">
           {isMarketplace && voucherStats && (
             <div className="hidden items-center gap-2 lg:flex">
-              <div className="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm border border-brand-100">
+              <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white shadow-sm border border-white/20">
                 <Ticket className="h-3.5 w-3.5" />
                 <span>{voucherStats.count} Vouchers</span>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm border border-emerald-100">
+              <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white shadow-sm border border-white/20">
                 <PiggyBank className="h-3.5 w-3.5" />
                 <span>R$ {voucherStats.totalSaved.toFixed(2)}</span>
               </div>
@@ -132,10 +132,10 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
 
           {!isMarketplace && !user && (
             <div className="hidden items-center gap-3 md:flex">
-              <Button href="/auth/login" variant="ghost" size="sm">
+              <Button href="/auth/login" variant="ghost" size="sm" className="text-white hover:bg-white/10">
                 Entrar
               </Button>
-              <Button href="#preco" size="sm">
+              <Button href="#preco" size="sm" className="bg-white text-[#6528a7]">
                 Assinar agora
               </Button>
             </div>
@@ -145,7 +145,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
             <div className="hidden md:block relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center justify-center h-10 w-10 overflow-hidden rounded-full border-2 border-brand-100 bg-brand-50 text-brand-700 transition-colors hover:border-brand-200"
+                className="flex items-center justify-center h-10 w-10 overflow-hidden rounded-full border-2 border-white/20 bg-white/10 text-white transition-colors hover:border-white/40"
               >
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
@@ -185,7 +185,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
 
           <button
             aria-label="Abrir menu"
-            className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700 md:hidden"
+            className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white hover:bg-white/20 md:hidden"
             onClick={() => setOpen((v) => !v)}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -195,29 +195,29 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
 
       <div
         className={cn(
-          "border-t border-brand-100 md:hidden",
+          "border-t border-white/20 md:hidden bg-[#6528a7]",
           open ? "block" : "hidden"
         )}
       >
         <div className="container-tight flex flex-col gap-1 py-4">
           {isMarketplace && voucherStats && (
             <div className="mb-4 grid grid-cols-2 gap-2">
-              <div className="flex flex-col items-center justify-center rounded-xl bg-brand-50 p-3 text-center border border-brand-100">
-                <Ticket className="mb-1 h-5 w-5 text-brand-600" />
-                <span className="text-xs font-medium text-brand-900">Vouchers</span>
-                <span className="text-sm font-bold text-brand-700">{voucherStats.count}</span>
+              <div className="flex flex-col items-center justify-center rounded-xl bg-white/10 p-3 text-center border border-white/20">
+                <Ticket className="mb-1 h-5 w-5 text-white" />
+                <span className="text-xs font-medium text-white/80">Vouchers</span>
+                <span className="text-sm font-bold text-white">{voucherStats.count}</span>
               </div>
-              <div className="flex flex-col items-center justify-center rounded-xl bg-emerald-50 p-3 text-center border border-emerald-100">
-                <PiggyBank className="mb-1 h-5 w-5 text-emerald-600" />
-                <span className="text-xs font-medium text-brand-900">Economia</span>
-                <span className="text-sm font-bold text-emerald-700">R$ {voucherStats.totalSaved.toFixed(2)}</span>
+              <div className="flex flex-col items-center justify-center rounded-xl bg-white/10 p-3 text-center border border-white/20">
+                <PiggyBank className="mb-1 h-5 w-5 text-white" />
+                <span className="text-xs font-medium text-white/80">Economia</span>
+                <span className="text-sm font-bold text-white">R$ {voucherStats.totalSaved.toFixed(2)}</span>
               </div>
             </div>
           )}
 
           {user && (
-            <div className="mb-4 flex items-center gap-3 rounded-xl bg-brand-50/50 p-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-100 text-brand-700">
+            <div className="mb-4 flex items-center gap-3 rounded-xl bg-white/10 p-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/20 text-white">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                 ) : (
@@ -225,8 +225,8 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-ink">{profile?.full_name || "Usuário"}</p>
-                <p className="truncate text-xs text-ink-muted">{user.email}</p>
+                <p className="truncate font-semibold text-white">{profile?.full_name || "Usuário"}</p>
+                <p className="truncate text-xs text-white/80">{user.email}</p>
               </div>
             </div>
           )}
@@ -236,7 +236,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-brand-50"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10"
             >
               {l.label}
             </Link>
@@ -247,9 +247,9 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
               <Link
                 href={dashboardLink}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-brand-50"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10"
               >
-                <UserCircle className="h-4 w-4 text-brand-500" />
+                <UserCircle className="h-4 w-4 text-white" />
                 Minha Conta
               </Link>
               <button
@@ -257,7 +257,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
                   setOpen(false);
                   handleSignOut();
                 }}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-300 hover:bg-white/10"
               >
                 <LogOut className="h-4 w-4" />
                 Sair
@@ -266,10 +266,10 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
           ) : (
             !isMarketplace && (
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <Button href="/auth/login" variant="outline" size="sm">
+                <Button href="/auth/login" variant="outline" size="sm" className="bg-transparent text-white border-white/20 hover:bg-white/10 hover:text-white">
                   Entrar
                 </Button>
-                <Button href="#preco" size="sm">
+                <Button href="#preco" size="sm" className="bg-white text-[#6528a7]">
                   Assinar
                 </Button>
               </div>
@@ -278,7 +278,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
           
           {isMarketplace && !user && (
              <div className="mt-2 grid grid-cols-1 gap-2">
-               <Button href="/auth/login" variant="outline" size="sm">
+               <Button href="/auth/login" variant="outline" size="sm" className="bg-transparent text-white border-white/20 hover:bg-white/10 hover:text-white">
                  Entrar / Assinar
                </Button>
              </div>

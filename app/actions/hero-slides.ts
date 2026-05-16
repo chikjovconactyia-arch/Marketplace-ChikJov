@@ -9,6 +9,7 @@ export interface HeroSlideInput {
   badge: string;
   image_url: string;
   mobile_image_url: string;
+  logo_image_url: string;
   cta_text: string;
   cta_link: string;
   cta2_text: string;
@@ -42,6 +43,7 @@ export async function createHeroSlideAction(data: HeroSlideInput): Promise<Slide
       badge: data.badge || null,
       image_url: data.image_url,
       mobile_image_url: data.mobile_image_url || null,
+      logo_image_url: data.logo_image_url || null,
       cta_text: data.cta_text || null,
       cta_link: data.cta_link || null,
       cta2_text: data.cta2_text || null,
@@ -74,6 +76,7 @@ export async function updateHeroSlideAction(id: string, data: HeroSlideInput): P
       badge: data.badge || null,
       image_url: data.image_url,
       mobile_image_url: data.mobile_image_url || null,
+      logo_image_url: data.logo_image_url || null,
       cta_text: data.cta_text || null,
       cta_link: data.cta_link || null,
       cta2_text: data.cta2_text || null,
@@ -132,6 +135,7 @@ export async function duplicateHeroSlideAction(id: string): Promise<SlideResult>
       badge: original.badge ?? null,
       image_url: original.image_url,
       mobile_image_url: original.mobile_image_url ?? null,
+      logo_image_url: original.logo_image_url ?? null,
       cta_text: original.cta_text ?? null,
       cta_link: original.cta_link ?? null,
       cta2_text: original.cta2_text ?? null,
