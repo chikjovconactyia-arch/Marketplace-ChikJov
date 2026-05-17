@@ -70,6 +70,7 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
   const role = String(formData.get("role") ?? "cliente") as UserRole;
   const empresaName = String(formData.get("empresaName") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
+  const redirectTo = String(formData.get("redirect") ?? "").trim();
   const cookieStore = await cookies();
   const referralSlug =
     String(formData.get("ref") ?? "").trim() ||
@@ -90,27 +91,25 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
     return { ok: false, message: "Tipo de cadastro inválido." };
   }
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  // 1) Cria usuário no Supabase Auth — metadata vai ser usada pelo trigger handle_new_user
-  // (caso exista) para popular profiles. Se não houver, fallback abaixo via admin.
-  const { data: signUp, error: signUpError } = await supabase.auth.signUp({
+  // 1) Cria usuário no Supabase Auth com Admin Client para bypassar confirmação de e-mail/celular
+  const { data: userCreated, error: userError } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: { full_name: fullName, role, phone },
-    },
+    email_confirm: true,
+    phone_confirm: true,
+    user_metadata: { full_name: fullName, role, phone },
   });
 
-  if (signUpError || !signUp.user) {
-    return { ok: false, message: traduzErroAuth(signUpError?.message ?? "Erro ao criar conta.") };
+  if (userError || !userCreated.user) {
+    return { ok: false, message: traduzErroAuth(userError?.message ?? "Erro ao criar conta.") };
   }
 
   // 2) Garante que existe profile (idempotente — usa upsert via service_role)
-  const admin = createAdminClient();
   await admin.from("profiles").upsert(
     {
-      id: signUp.user.id,
+      id: userCreated.user.id,
       role,
       full_name: fullName,
       phone: phone || null,
@@ -145,15 +144,15 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
     const { data: referrerId } = await admin.rpc("get_referrer_by_slug", {
       p_slug: referralSlug,
     });
-    if (referrerId && typeof referrerId === "string" && referrerId !== signUp.user.id) {
+    if (referrerId && typeof referrerId === "string" && referrerId !== userCreated.user.id) {
       await admin.rpc("register_referral", {
         p_referrer_id: referrerId,
-        p_referred_id: signUp.user.id,
+        p_referred_id: userCreated.user.id,
         p_level: 1,
         p_commission: 20,
       });
       // Vincular profile.referred_by_user_id
-      await admin.from("profiles").update({ referred_by_user_id: referrerId }).eq("id", signUp.user.id);
+      await admin.from("profiles").update({ referred_by_user_id: referrerId }).eq("id", userCreated.user.id);
 
       // Comissão nível 2 — se o referrer também foi indicado por alguém
       const { data: referrerProfile } = await admin
@@ -162,10 +161,10 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
         .eq("id", referrerId)
         .maybeSingle();
 
-      if (referrerProfile?.referred_by_user_id && referrerProfile.referred_by_user_id !== signUp.user.id) {
+      if (referrerProfile?.referred_by_user_id && referrerProfile.referred_by_user_id !== userCreated.user.id) {
         await admin.rpc("register_referral", {
           p_referrer_id: referrerProfile.referred_by_user_id,
-          p_referred_id: signUp.user.id,
+          p_referred_id: userCreated.user.id,
           p_level: 2,
           p_commission: 5,
         });
@@ -175,15 +174,22 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
     cookieStore.delete("chikjov_ref");
   }
 
-  // Se a confirmação de email estiver desligada, o usuário já está logado.
-  if (signUp.session) {
-    redirect("/checkout");
+  // 5) Realiza o login automático do usuário recém-criado
+  const supabase = await createClient();
+  const { data: signIn, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    return {
+      ok: false,
+      message: "Conta criada com sucesso! Porém, ocorreu um erro ao fazer o login automático. Por favor, vá para a tela de login.",
+    };
   }
 
-  return {
-    ok: true,
-    message: "Conta criada! Verifique seu email para confirmar o cadastro.",
-  };
+  const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/checkout";
+  redirect(target);
 }
 
 export async function logoutAction() {
@@ -224,26 +230,27 @@ export async function registerEmpresaLandingAction(
     return { ok: false, message: "A senha deve ter ao menos 8 caracteres." };
   }
 
-  const supabase = await createClient();
   const admin = createAdminClient();
 
-  // 1. Criar usuário no Supabase Auth
-  const { data: signUp, error: signUpError } = await supabase.auth.signUp({
+  // 1. Criar usuário confirmado no Supabase Auth usando o Admin Client
+  const { data: userCreated, error: userError } = await admin.auth.admin.createUser({
     email: data.email,
     password: data.senha,
-    options: {
-      data: { full_name: data.nome, role: "empresa", phone: data.whatsapp },
-    },
+    email_confirm: true,
+    phone_confirm: true,
+    user_metadata: { full_name: data.nome, role: "empresa", phone: data.whatsapp },
   });
 
-  if (signUpError || !signUp.user) {
-    return { ok: false, message: traduzErroAuth(signUpError?.message ?? "Erro ao criar conta.") };
+  if (userError || !userCreated.user) {
+    return { ok: false, message: traduzErroAuth(userError?.message ?? "Erro ao criar conta.") };
   }
+
+  const userId = userCreated.user.id;
 
   // 2. Garantir profile com role=empresa
   await admin.from("profiles").upsert(
     {
-      id: signUp.user.id,
+      id: userId,
       role: "empresa",
       full_name: data.nome,
       phone: data.whatsapp,
@@ -254,7 +261,6 @@ export async function registerEmpresaLandingAction(
   );
 
   // 3. Registrar no banco via RPC (Cria Empresário, Empresa e Lead de uma vez)
-  // A função SQL foi atualizada para salvar o instagram na coluna correta.
   const { data: rpcResult, error: rpcError } = await admin.rpc("submit_empresa_lead", {
     p_nome: data.nome,
     p_email: data.email,
@@ -265,24 +271,26 @@ export async function registerEmpresaLandingAction(
 
   if (rpcError) {
     console.error("Erro no RPC submit_empresa_lead:", rpcError);
-    // Mesmo se o RPC der erro (ex: duplicidade), o usuário Auth e o Profile já foram criados.
-    // Mas vamos retornar o erro para o usuário se for algo crítico.
     if (rpcError.message.includes("já está cadastrado")) {
       return { ok: false, message: rpcError.message };
     }
   }
 
-  // 6. Se confirmação de email desligada, sessão já ativa → redireciona
-  if (signUp.session) {
-    return { ok: true, message: "Conta criada!", redirectTo: "/dashboard/empresa" };
+  // 4. Realizar o login automático do usuário recém-criado
+  const supabase = await createClient();
+  const { data: signIn, error: signInError } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.senha,
+  });
+
+  if (signInError) {
+    return {
+      ok: false,
+      message: "Cadastro realizado com sucesso! Porém, ocorreu um erro ao fazer o login automático. Por favor, faça o login manualmente.",
+    };
   }
 
-  // Email de confirmação foi enviado
-  return {
-    ok: true,
-    message:
-      "Cadastro enviado com sucesso! Verifique seu email para ativar a conta e depois acesse o dashboard.",
-  };
+  return { ok: true, message: "Conta criada!", redirectTo: "/dashboard/empresa" };
 }
 
 function traduzErroAuth(msg: string): string {

@@ -20,9 +20,11 @@ const CIDADES_RMBH = [
 export function RegisterForm({
   initialRole,
   referralSlug,
+  redirectTo = "",
 }: {
   initialRole: Role;
   referralSlug: string;
+  redirectTo?: string;
 }) {
   const [role, setRole] = useState<Role>(initialRole);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +68,9 @@ export function RegisterForm({
         <input type="hidden" name="role" value={role} />
         {referralSlug && (
           <input type="hidden" name="ref" value={referralSlug} />
+        )}
+        {redirectTo && (
+          <input type="hidden" name="redirect" value={redirectTo} />
         )}
 
         <Field

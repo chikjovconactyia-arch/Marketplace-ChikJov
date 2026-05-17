@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Topbar } from "@/components/cliente/Topbar";
 import { deriveReferralStatus } from "@/lib/referral-helpers";
+import { SubscriptionBanner } from "./SubscriptionBanner";
 
 export const metadata = { title: "Dashboard Cliente — ChikJov" };
 export const revalidate = 0;
@@ -156,28 +157,11 @@ export default async function DashboardClientePage() {
           </p>
         </div>
 
-        {/* Trial alert */}
-        {trialDays !== null && trialDays > 0 && profile?.subscription_status !== "active" && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100">
-              <Sparkles className="h-5 w-5 text-amber-700" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-900">
-                Você está no período grátis · {trialDays} {trialDays === 1 ? "dia restante" : "dias restantes"}
-              </p>
-              <p className="text-xs text-amber-800">
-                Aproveite ao máximo! Após o trial, ative seu plano para continuar economizando.
-              </p>
-            </div>
-            <Link
-              href="/checkout"
-              className="rounded-full bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700"
-            >
-              Ativar plano
-            </Link>
-          </div>
-        )}
+        {/* Subscription banners */}
+        <SubscriptionBanner
+          status={profile?.subscription_status ?? null}
+          trialDays={trialDays}
+        />
 
         {/* KPIs */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">

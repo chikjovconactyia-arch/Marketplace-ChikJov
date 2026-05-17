@@ -17,7 +17,7 @@ export default async function HeroCarouselPage() {
   const admin = createAdminClient();
   const { data: slides } = await admin
     .from("hero_slides")
-    .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, city, active, order, created_at, updated_at")
+    .select("id, title, subtitle, badge, cta_text, cta_link, cta2_text, cta2_link, image_url, mobile_image_url, logo_image_url, city, active, order, created_at, updated_at")
     .order("order", { ascending: true });
 
   const slides_ = slides ?? [];

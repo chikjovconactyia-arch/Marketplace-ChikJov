@@ -104,26 +104,68 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
 function SlidePreview({ slide, device = "desktop" }: { slide: HeroSlide; device?: "desktop" | "mobile" }) {
   const isMobile = device === "mobile";
   const imageUrl = isMobile ? (slide.mobile_image_url ?? slide.image_url) : slide.image_url;
+
+  if (isMobile) {
+    return (
+      <div className={cn(
+        "relative w-full overflow-hidden rounded-[24px] bg-[#0A0A0F] max-w-[500px] h-[200px] mx-auto shadow-md border border-white/10"
+      )}>
+        {imageUrl && (
+          <>
+            <div className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${imageUrl})` }} />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F]/95 via-[#0A0A0F]/70 to-[#0A0A0F]/30" />
+          </>
+        )}
+        <div className="absolute inset-0 flex items-center p-5 gap-4 z-10 text-white">
+          {slide.logo_image_url && (
+            <div className="flex-shrink-0 w-[84px] h-[84px] rounded-full border-[3px] border-white/10 overflow-hidden shadow-2xl bg-white">
+              <img src={slide.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 flex flex-col justify-center text-left">
+            {slide.badge && (
+              <span className="mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur-sm shadow-sm">
+                {slide.badge}
+              </span>
+            )}
+            <h3 className="font-display text-[16px] leading-[1.15] font-bold text-white line-clamp-2 drop-shadow-md">
+              {slide.title || "Título do slide"}
+            </h3>
+            {slide.subtitle && (
+              <p className="mt-1.5 text-[11px] text-white/80 line-clamp-2 leading-snug drop-shadow-sm">{slide.subtitle}</p>
+            )}
+            {slide.cta_text && (
+              <div className="mt-3">
+                <span className="inline-flex h-8 items-center justify-center rounded-full bg-accent-500 px-5 text-[11px] font-bold tracking-wide text-white shadow-cta">
+                  {slide.cta_text}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        {!slide.active && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
+            <span className="rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-ink">Inativo</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={cn(
-      "relative w-full overflow-hidden rounded-2xl bg-[#0A0A0F]",
-      isMobile ? "aspect-[4/5] max-w-[280px] mx-auto" : "h-64"
+      "relative w-full overflow-hidden rounded-2xl bg-[#0A0A0F] h-64"
     )}>
       {imageUrl && (
         <>
           <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{ backgroundImage: `url(${imageUrl})` }} />
-          {isMobile ? (
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/0 to-[#0A0A0F]/85" />
-          ) : (
-            <>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/70 to-transparent" />
-            </>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/70 to-transparent" />
         </>
       )}
-      <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
+      <div className="absolute inset-0 flex flex-col justify-end p-5 text-white text-left">
         {slide.badge && (
           <span className="mb-2 inline-block w-fit rounded-full border border-white/20 bg-white/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
             {slide.badge}
@@ -144,7 +186,7 @@ function SlidePreview({ slide, device = "desktop" }: { slide: HeroSlide; device?
         )}
       </div>
       {!slide.active && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
           <span className="rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-ink">Inativo</span>
         </div>
       )}
@@ -280,7 +322,7 @@ function SlideModal({
               {/* Mobile */}
               <div>
                 <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-700">
-                  📱 Mobile — 1080 × 1350
+                  📱 Mobile — 500 × 200 (Card Promocional)
                   {!fakeSlide.mobile_image_url && (
                     <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
                       usando desktop
@@ -359,7 +401,7 @@ function SlideModal({
 
               {/* Título */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-ink">Título *</label>
+                <label className="mb-1.5 block text-sm font-medium text-ink">Título</label>
                 <input className={inputCls} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Economize de verdade nas empresas que você ama" maxLength={80} />
                 <p className="mt-1 text-right text-[10px] text-ink-subtle">{form.title.length}/80</p>
               </div>
@@ -714,6 +756,11 @@ export function HeroSlidesClient({ slides: initialSlides }: { slides: HeroSlide[
                   <GripVertical className="h-4 w-4" />
                 </div>
                 <SlidePreview slide={slide} />
+                {slide.logo_image_url && (
+                  <div className="absolute right-3 top-3 z-10 h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow bg-white">
+                    <img src={slide.logo_image_url} alt="Logo" className="h-full w-full object-cover" />
+                  </div>
+                )}
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
                   <ActionBtn icon={Pencil} label="Editar" onClick={() => setModal(slide)} />
                   <ActionBtn icon={Eye} label="Preview" onClick={() => setPreviewing(slide)} />
@@ -742,7 +789,7 @@ export function HeroSlidesClient({ slides: initialSlides }: { slides: HeroSlide[
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E8E4F3] bg-surface-soft">
-                {["", "Preview", "Título", "Badge", "Cidade", "Status", "Posição", "Ações"].map((h) => (
+                {["", "Preview", "Logo", "Título", "Badge", "Cidade", "Status", "Posição", "Ações"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-subtle">{h}</th>
                 ))}
               </tr>
@@ -767,6 +814,15 @@ export function HeroSlidesClient({ slides: initialSlides }: { slides: HeroSlide[
                       )}
                       <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {slide.logo_image_url ? (
+                      <div className="h-10 w-10 overflow-hidden rounded-full border border-brand-100 bg-white">
+                        <img src={slide.logo_image_url} alt="Logo" className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <span className="text-ink-subtle text-xs">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-semibold text-ink max-w-[200px] truncate">{slide.title}</td>
                   <td className="px-4 py-3">

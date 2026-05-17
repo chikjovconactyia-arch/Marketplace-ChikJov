@@ -8,7 +8,7 @@ type Role = "cliente" | "empresa";
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; ref?: string }>;
+  searchParams: Promise<{ role?: string; ref?: string; redirect?: string }>;
 }) {
   const sp = await searchParams;
   const initialRole: Role = sp.role === "empresa" ? "empresa" : "cliente";
@@ -21,7 +21,11 @@ export default async function RegisterPage({
           Comece em menos de 1 minuto.
         </p>
 
-        <RegisterForm initialRole={initialRole} referralSlug={sp.ref ?? ""} />
+        <RegisterForm 
+          initialRole={initialRole} 
+          referralSlug={sp.ref ?? ""} 
+          redirectTo={sp.redirect ?? ""} 
+        />
 
         <p className="mt-6 text-center text-sm text-ink-muted">
           Já tem uma conta?{" "}

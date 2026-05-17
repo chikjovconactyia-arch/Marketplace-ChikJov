@@ -39,10 +39,17 @@ export function Pricing() {
             </p>
             
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Button href="/auth/register" size="lg" className="px-12 py-7 text-lg shadow-cta">
-                Assinar agora
+              <Button
+                href="https://buy.stripe.com/test_7sYeVcfPR0kz9OL0dD14400"
+                size="lg"
+                className="px-12 py-7 text-lg shadow-cta"
+              >
+                Iniciar 30 dias grátis
               </Button>
             </div>
+            <p className="mt-3 text-sm text-white/70">
+              Sem cobrança nos primeiros 30 dias · cancele quando quiser.
+            </p>
           </div>
 
           {/* No desktop o card já está na imagem de fundo. 

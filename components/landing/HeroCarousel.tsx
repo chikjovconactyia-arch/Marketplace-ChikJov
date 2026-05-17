@@ -162,13 +162,6 @@ export function HeroCarousel({ slides }: Props) {
                   style={{ transition: "transform 8s ease-out" }}
                 />
               </picture>
-              {/* Mobile overlays: Gradiente escuro garantindo contraste no card */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F]/95 via-[#0A0A0F]/70 to-[#0A0A0F]/30 md:hidden" />
-              
-              {/* Desktop overlays */}
-              <div className="absolute inset-0 hidden bg-black/30 md:block" />
-              <div className="absolute inset-0 hidden bg-gradient-to-r from-[#0A0A0F] via-[#0A0A0F]/75 to-transparent md:block" />
-              <div className="absolute inset-0 hidden bg-gradient-to-t from-[#0A0A0F]/80 via-transparent to-transparent md:block" />
             </div>
           );
         })}
@@ -217,20 +210,30 @@ export function HeroCarousel({ slides }: Props) {
                 {slide.subtitle}
               </p>
             )}
-            {slide.cta_text && slide.cta_link && (
+            {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
               <div
                 className={cn(
-                  "mt-3",
+                  "mt-3 flex flex-wrap gap-2",
                   "transition-all duration-500 delay-200",
                   transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
                 )}
               >
-                <Link
-                  href={slide.cta_link}
-                  className="inline-flex h-8 items-center justify-center rounded-full bg-accent-500 px-5 text-[11px] font-bold tracking-wide text-white shadow-cta transition-all hover:bg-accent-600 hover:scale-105 active:scale-95"
-                >
-                  {slide.cta_text}
-                </Link>
+                {slide.cta_text?.trim() && slide.cta_link?.trim() && (
+                  <Link
+                    href={slide.cta_link}
+                    className="inline-flex h-8 items-center justify-center rounded-full bg-accent-500 px-5 text-[11px] font-bold tracking-wide text-white shadow-cta transition-all hover:bg-accent-600 active:scale-95"
+                  >
+                    {slide.cta_text}
+                  </Link>
+                )}
+                {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
+                  <Link
+                    href={slide.cta2_link}
+                    className="inline-flex h-8 items-center justify-center rounded-full border border-white/40 bg-white/15 px-5 text-[11px] font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95"
+                  >
+                    {slide.cta2_text}
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -278,41 +281,43 @@ export function HeroCarousel({ slides }: Props) {
                 </p>
               )}
 
-              {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
-                <div
-                  className={cn(
-                    "mt-8 flex flex-row justify-start gap-3",
-                    "transition-all duration-500 delay-200",
-                    transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
-                  )}
-                >
-                  {slide.cta_text?.trim() && slide.cta_link?.trim() && (
-                    <Link
-                      href={slide.cta_link}
-                      className={cn(
-                        "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
-                        "h-14 px-8 text-base"
-                      )}
-                    >
-                      {slide.cta_text}
-                    </Link>
-                  )}
-                  {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
-                    <Link
-                      href={slide.cta2_link}
-                      className={cn(
-                        "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
-                        "h-14 px-8 text-base"
-                      )}
-                    >
-                      {slide.cta2_text}
-                    </Link>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {/* Desktop CTA buttons — bottom right */}
+        {(slide.cta_text?.trim() || slide.cta2_text?.trim()) && (
+          <div
+            className={cn(
+              "absolute bottom-16 right-12 hidden md:flex flex-col items-end gap-3 z-20 pointer-events-auto",
+              "transition-all duration-500 delay-200",
+              transitioning ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
+            )}
+          >
+            {slide.cta_text?.trim() && slide.cta_link?.trim() && (
+              <Link
+                href={slide.cta_link}
+                className={cn(
+                  "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
+                  "h-14 px-8 text-base"
+                )}
+              >
+                {slide.cta_text}
+              </Link>
+            )}
+            {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
+              <Link
+                href={slide.cta2_link}
+                className={cn(
+                  "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
+                  "h-14 px-8 text-base"
+                )}
+              >
+                {slide.cta2_text}
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Desktop Controls (Arrows & Progress) */}
         {active.length > 1 && (

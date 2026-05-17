@@ -31,7 +31,6 @@ function revalidate() {
 }
 
 export async function createHeroSlideAction(data: HeroSlideInput): Promise<SlideResult> {
-  if (!data.title?.trim()) return { ok: false, message: "Título é obrigatório." };
   if (!data.image_url?.trim()) return { ok: false, message: "Imagem é obrigatória." };
 
   const admin = createAdminClient();
@@ -65,8 +64,6 @@ export async function createHeroSlideAction(data: HeroSlideInput): Promise<Slide
 }
 
 export async function updateHeroSlideAction(id: string, data: HeroSlideInput): Promise<SlideResult> {
-  if (!data.title?.trim()) return { ok: false, message: "Título é obrigatório." };
-
   const admin = createAdminClient();
   const { error } = await admin
     .from("hero_slides")
