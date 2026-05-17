@@ -255,6 +255,8 @@ export function IndicacoesClient({ userName, slug: initialSlug, items, kpis }: P
   const [viewMode, setViewMode] = useState<"lista" | "arvore">("lista");
   const [pending, startTransition] = useTransition();
 
+  const [refLink, setRefLink] = useState("");
+
   // Gera slug automaticamente se ainda não existe
   useEffect(() => {
     if (!slug) {
@@ -265,7 +267,13 @@ export function IndicacoesClient({ userName, slug: initialSlug, items, kpis }: P
     }
   }, [slug]);
 
-  const refLink = slug ? `${window.location.origin}/ref/${slug}` : "";
+  useEffect(() => {
+    if (slug && typeof window !== "undefined") {
+      setRefLink(`${window.location.origin}/ref/${slug}`);
+    } else {
+      setRefLink("");
+    }
+  }, [slug]);
 
   const copyLink = async () => {
     if (!refLink) return;

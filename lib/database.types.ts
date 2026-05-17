@@ -205,6 +205,7 @@ export type Database = {
           id: string
           image_url: string
           mobile_image_url: string | null
+          logo_image_url: string | null
           order: number
           subtitle: string | null
           title: string
@@ -222,6 +223,7 @@ export type Database = {
           id?: string
           image_url: string
           mobile_image_url?: string | null
+          logo_image_url?: string | null
           order?: number
           subtitle?: string | null
           title: string
@@ -239,6 +241,7 @@ export type Database = {
           id?: string
           image_url?: string
           mobile_image_url?: string | null
+          logo_image_url?: string | null
           order?: number
           subtitle?: string | null
           title?: string
