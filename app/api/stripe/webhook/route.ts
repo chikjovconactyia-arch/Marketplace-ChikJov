@@ -6,6 +6,7 @@ import {
   mapStripeStatusToDb,
 } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAppBaseUrl } from "@/lib/url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -138,9 +139,7 @@ async function syncSubscription(
   // Fallback 2: usuário ainda não existe no Supabase — cria automaticamente
   // (necessário quando o pagamento veio via Payment Link, sem cadastro prévio no site)
   if (!userId && customerEmail) {
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-      "http://localhost:3000";
+    const siteUrl = getAppBaseUrl();
     try {
       // inviteUserByEmail cria o usuário E envia email de convite
       // (com link mágico que redireciona pra /auth/reset-password)

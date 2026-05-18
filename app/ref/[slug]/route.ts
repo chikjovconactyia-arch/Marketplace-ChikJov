@@ -8,9 +8,12 @@ export async function GET(
   const { slug } = await ctx.params;
   const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-  const url = new URL(`${siteUrl}/auth/register`);
+  // Usa o origin REAL da requisição — nunca depende de env var.
+  // Isso garante que se o usuário acessou via https://clube.chikjov.com.br,
+  // o redirect vai pro mesmo domínio — não pra localhost.
+  const url = req.nextUrl.clone();
+  url.pathname = "/auth/register";
+  url.search = "";
   url.searchParams.set("ref", cleanSlug);
 
   const response = NextResponse.redirect(url);

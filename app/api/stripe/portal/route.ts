@@ -33,9 +33,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-      `${req.nextUrl.protocol}//${req.headers.get("host")}`;
+    // Usa o origin REAL da requisição — domínio do usuário, não env var
+    const siteUrl = req.nextUrl.origin;
 
     const session = await stripe.billingPortal.sessions.create({
       customer: assinatura.stripe_customer_id,

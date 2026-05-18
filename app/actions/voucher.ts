@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAppBaseUrl } from "@/lib/url";
 
 export interface GenerateVoucherInput {
   empresaId: string;
@@ -37,8 +38,7 @@ function generateVoucherCode(): string {
 }
 
 function getValidationUrl(code: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  return `${base}/voucher/validar/${code}`;
+  return `${getAppBaseUrl()}/voucher/validar/${code}`;
 }
 
 export async function generateVoucherAction(
