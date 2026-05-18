@@ -69,10 +69,12 @@ export async function generateVoucherAction(
     return { ok: false, message: "Empresas não geram vouchers — apenas clientes." };
   }
 
-  // Admin gera sempre. Cliente precisa de plano ativo/trial.
+  // Admin gera sempre. Cliente precisa de plano ativo OU em trial (30 dias grátis).
+  // Aceita tanto os valores mapeados do DB ("ativo") quanto raw do Stripe ("active"/"trialing").
   if (profile.role !== "admin") {
-    const sub = profile.subscription_status;
-    if (sub !== "active" && sub !== "trial") {
+    const sub = (profile.subscription_status ?? "").toLowerCase();
+    const allowed = ["ativo", "active", "trial", "trialing"];
+    if (!allowed.includes(sub)) {
       return {
         ok: false,
         message: "Você precisa de um plano ativo para gerar vouchers.",

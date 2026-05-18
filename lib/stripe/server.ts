@@ -17,7 +17,11 @@ export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 /**
  * Resolve o Price ID do plano cliente.
- * Prefere STRIPE_PRICE_ID_CLIENTE; se vazio, busca default_price do produto.
+ *
+ * Ordem de prioridade:
+ * 1. STRIPE_PRICE_ID_CLIENTE (env var explícita)
+ * 2. product.default_price (Stripe Dashboard → produto → "Default price")
+ * 3. Primeiro preço ATIVO RECORRENTE do produto (busca via API)
  */
 export async function resolveClientePriceId(): Promise<string> {
   if (STRIPE_PRICE_CLIENTE) return STRIPE_PRICE_CLIENTE;
@@ -26,15 +30,32 @@ export async function resolveClientePriceId(): Promise<string> {
     throw new Error("Configure STRIPE_PRODUCT_ID_CLIENTE ou STRIPE_PRICE_ID_CLIENTE.");
   }
 
+  // Tenta default_price primeiro
   const product = await stripe.products.retrieve(STRIPE_PRODUCT_CLIENTE);
-  const defaultPrice = product.default_price;
+  if (product.default_price) {
+    return typeof product.default_price === "string"
+      ? product.default_price
+      : product.default_price.id;
+  }
 
-  if (!defaultPrice) {
+  // Fallback: lista preços ativos do produto e pega o primeiro recorrente
+  const prices = await stripe.prices.list({
+    product: STRIPE_PRODUCT_CLIENTE,
+    active: true,
+    type: "recurring",
+    limit: 10,
+  });
+
+  if (prices.data.length === 0) {
     throw new Error(
-      `Produto ${STRIPE_PRODUCT_CLIENTE} não possui default_price. Defina STRIPE_PRICE_ID_CLIENTE.`
+      `Produto ${STRIPE_PRODUCT_CLIENTE} não possui preços recorrentes ativos. ` +
+      `Crie um preço no Stripe Dashboard ou defina STRIPE_PRICE_ID_CLIENTE no .env.`
     );
   }
-  return typeof defaultPrice === "string" ? defaultPrice : defaultPrice.id;
+
+  // Prefere o preço com intervalo mensal
+  const monthly = prices.data.find((p) => p.recurring?.interval === "month");
+  return (monthly ?? prices.data[0]).id;
 }
 
 /**
