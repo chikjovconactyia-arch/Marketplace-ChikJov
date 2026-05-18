@@ -141,36 +141,91 @@ export async function registerAction(formData: FormData): Promise<AuthResult> {
 
   // 4) Se veio com ref, registra indicação (1º nível, comissão R$ 20)
   if (referralSlug) {
-    const { data: referrerId } = await admin.rpc("get_referrer_by_slug", {
-      p_slug: referralSlug,
-    });
-    if (referrerId && typeof referrerId === "string" && referrerId !== userCreated.user.id) {
-      await admin.rpc("register_referral", {
-        p_referrer_id: referrerId,
-        p_referred_id: userCreated.user.id,
-        p_level: 1,
-        p_commission: 20,
+    console.log("[register] Referral slug recebido:", referralSlug);
+
+    // Busca o indicador pelo slug — query direta, sem RPC
+    const { data: referrer, error: referrerError } = await admin
+      .from("profiles")
+      .select("id, full_name, referred_by_user_id")
+      .eq("referral_slug", referralSlug)
+      .maybeSingle();
+
+    if (referrerError) {
+      console.error("[register] Erro ao buscar indicador por slug:", referrerError);
+    }
+
+    if (!referrer) {
+      console.warn(
+        "[register] Slug de indicador não encontrado em profiles.referral_slug:",
+        referralSlug
+      );
+    } else if (referrer.id === userCreated.user.id) {
+      console.warn("[register] Auto-indicação bloqueada para:", referralSlug);
+    } else {
+      console.log("[register] Indicador encontrado:", {
+        id: referrer.id,
+        nome: referrer.full_name,
       });
-      // Vincular profile.referred_by_user_id
-      await admin.from("profiles").update({ referred_by_user_id: referrerId }).eq("id", userCreated.user.id);
 
-      // Comissão nível 2 — se o referrer também foi indicado por alguém
-      const { data: referrerProfile } = await admin
+      // Cria registro de referral nível 1 (R$ 20) — insert direto
+      const { error: refN1Error } = await admin.from("referrals").insert({
+        referrer_user_id: referrer.id,
+        referred_user_id: userCreated.user.id,
+        level: 1,
+        commission_value: 20,
+        commission_status: null, // deriva para "pending_signup"
+      });
+      if (refN1Error) {
+        console.error("[register] Erro ao criar referral N1:", refN1Error);
+      } else {
+        console.log(
+          "[register] Referral N1 criado (R$ 20):",
+          referrer.id,
+          "→",
+          userCreated.user.id
+        );
+      }
+
+      // Vincula profile.referred_by_user_id no indicado
+      const { error: profileLinkError } = await admin
         .from("profiles")
-        .select("referred_by_user_id")
-        .eq("id", referrerId)
-        .maybeSingle();
+        .update({ referred_by_user_id: referrer.id })
+        .eq("id", userCreated.user.id);
+      if (profileLinkError) {
+        console.error(
+          "[register] Erro ao vincular referred_by_user_id no indicado:",
+          profileLinkError
+        );
+      } else {
+        console.log("[register] profiles.referred_by_user_id vinculado:", referrer.id);
+      }
 
-      if (referrerProfile?.referred_by_user_id && referrerProfile.referred_by_user_id !== userCreated.user.id) {
-        await admin.rpc("register_referral", {
-          p_referrer_id: referrerProfile.referred_by_user_id,
-          p_referred_id: userCreated.user.id,
-          p_level: 2,
-          p_commission: 5,
+      // Nível 2: se o indicador também foi indicado por alguém, esse alguém ganha R$ 5
+      if (
+        referrer.referred_by_user_id &&
+        referrer.referred_by_user_id !== userCreated.user.id
+      ) {
+        const { error: refN2Error } = await admin.from("referrals").insert({
+          referrer_user_id: referrer.referred_by_user_id,
+          referred_user_id: userCreated.user.id,
+          level: 2,
+          commission_value: 5,
+          commission_status: null,
         });
+        if (refN2Error) {
+          console.error("[register] Erro ao criar referral N2:", refN2Error);
+        } else {
+          console.log(
+            "[register] Referral N2 criado (R$ 5):",
+            referrer.referred_by_user_id,
+            "→",
+            userCreated.user.id
+          );
+        }
       }
     }
-    // Limpa cookie após registrar
+
+    // Limpa cookie após tentativa de registro
     cookieStore.delete("chikjov_ref");
   }
 

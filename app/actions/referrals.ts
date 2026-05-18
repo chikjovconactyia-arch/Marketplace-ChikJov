@@ -10,7 +10,19 @@ export interface SlugResult {
   slug?: string;
 }
 
-// Garante que o usuário tem um referral_slug; gera se necessário (via RPC)
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 30);
+}
+
+// Garante que o usuário tem um referral_slug; gera se necessário.
+// Não depende de RPC — usa query direta com colisão tratada por sufixo do user_id.
 export async function getOrGenerateSlugAction(): Promise<SlugResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,28 +37,32 @@ export async function getOrGenerateSlugAction(): Promise<SlugResult> {
 
   if (profile?.referral_slug) return { ok: true, slug: profile.referral_slug };
 
-  // Gera slug via RPC
   const baseName = profile?.full_name ?? user.email?.split("@")[0] ?? "user";
-  const { data: newSlug, error } = await admin.rpc("generate_referral_slug", {
-    p_user_id: user.id,
-    p_name: baseName,
-  });
+  const baseSlug = slugify(baseName) || "user";
 
-  if (error) {
-    console.error("[getOrGenerateSlug] RPC error:", error);
-    // Fallback: gera slug manualmente
-    const fallback = baseName.toLowerCase()
-      .normalize("NFD").replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 30) + "-" + user.id.slice(0, 6);
+  // Tenta usar o slug base; se já existir outro perfil com o mesmo, adiciona sufixo
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("referral_slug", baseSlug)
+    .maybeSingle();
 
-    await admin.from("profiles").update({ referral_slug: fallback }).eq("id", user.id);
-    return { ok: true, slug: fallback };
+  const finalSlug = existing
+    ? `${baseSlug}-${user.id.slice(0, 6)}`
+    : baseSlug;
+
+  const { error: updateError } = await admin
+    .from("profiles")
+    .update({ referral_slug: finalSlug })
+    .eq("id", user.id);
+
+  if (updateError) {
+    console.error("[getOrGenerateSlug] Erro ao salvar slug:", updateError);
+    return { ok: false, message: "Erro ao gerar link de indicação." };
   }
 
-  return { ok: true, slug: typeof newSlug === "string" ? newSlug : "" };
+  console.log("[getOrGenerateSlug] Slug gerado para", user.id, ":", finalSlug);
+  return { ok: true, slug: finalSlug };
 }
 
 export interface PayoutResult {
