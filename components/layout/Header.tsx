@@ -83,7 +83,11 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
   };
 
   const dashboardLink = profile?.role === "empresa" ? "/dashboard/empresa" : "/dashboard/cliente";
-  
+
+  const firstName = profile?.full_name
+    ? profile.full_name.trim().split(" ")[0]
+    : user?.email?.split("@")[0] ?? "você";
+
   // Extrai as iniciais do nome ou email
   const getInitials = () => {
     if (profile?.full_name) {
@@ -99,10 +103,19 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 bg-[#6528a7] text-white border-b border-[#6528a7]">
-      <div className="container-tight flex h-[100px] items-center justify-between md:h-20">
+      <div className="container-tight relative flex h-[100px] items-center justify-between md:h-20">
         <Link href="/" className="flex items-center gap-2">
           <img src="/logo-2-chikjov.png" alt="ChikJov" className="h-10 w-auto brightness-0 invert" />
         </Link>
+
+        {/* Saudação centralizada — apenas mobile, apenas logado */}
+        {user && (
+          <div className="pointer-events-none absolute inset-x-0 flex justify-center md:hidden">
+            <p className="text-base italic font-semibold text-white">
+              Olá, {firstName}
+            </p>
+          </div>
+        )}
 
         <nav className="hidden items-center gap-6 md:flex">
           {links.map((l) => (

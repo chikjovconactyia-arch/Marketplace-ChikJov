@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import {
   Share2, Copy, CheckCircle2, AlertCircle, Wallet, Users,
   Clock, TrendingUp, Loader2, Send, Link as LinkIcon, X,
-  Sparkles, Lock, ArrowRight, LayoutList, Network
+  Sparkles, Lock, ArrowRight, LayoutList, Network, QrCode
 } from "lucide-react";
 import {
   getOrGenerateSlugAction, requestPayoutAction, connectStripeAction
@@ -252,6 +252,7 @@ export function IndicacoesClient({ userName, slug: initialSlug, items, kpis }: P
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "error" | "warning" } | null>(null);
   const [stripeModal, setStripeModal] = useState(false);
+  const [qrModal, setQrModal] = useState(false);
   const [viewMode, setViewMode] = useState<"lista" | "arvore">("lista");
   const [pending, startTransition] = useTransition();
 
@@ -352,6 +353,14 @@ export function IndicacoesClient({ userName, slug: initialSlug, items, kpis }: P
               </div>
             </div>
             <div className="flex flex-wrap gap-2 md:flex-nowrap">
+              <button
+                onClick={() => setQrModal(true)}
+                disabled={!slug}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-white/20 px-4 text-sm font-bold text-white shadow-card transition-colors hover:bg-white/30 disabled:opacity-50"
+              >
+                <QrCode className="h-4 w-4" />
+                QR Code
+              </button>
               <button
                 onClick={shareWhatsapp}
                 disabled={!slug}
@@ -543,6 +552,38 @@ export function IndicacoesClient({ userName, slug: initialSlug, items, kpis }: P
           </div>
         )}
       </div>
+
+      {/* Modal QR Code */}
+      {qrModal && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setQrModal(false)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-6 shadow-2xl text-center animate-fade-up">
+            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-brand-gradient text-white shadow-card">
+              <QrCode className="h-6 w-6" />
+            </div>
+            <h3 className="font-display text-xl font-bold text-ink">Seu QR Code</h3>
+            <p className="mt-2 mb-6 text-sm text-ink-muted">
+              Mostre este QR Code para que seus amigos possam escanear e se cadastrar através da sua indicação.
+            </p>
+            {refLink && (
+              <div className="mx-auto flex w-fit justify-center rounded-xl border border-gray-100 bg-white p-4 shadow-inner">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(refLink)}`} 
+                  alt="QR Code de Indicação" 
+                  className="h-48 w-48"
+                />
+              </div>
+            )}
+            <button
+              onClick={() => setQrModal(false)}
+              className="mt-6 w-full rounded-full bg-brand-500 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-600"
+            >
+              Fechar
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Modal Stripe Connect */}
 

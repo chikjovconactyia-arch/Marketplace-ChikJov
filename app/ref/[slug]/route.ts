@@ -8,7 +8,9 @@ export async function GET(
   const { slug } = await ctx.params;
   const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
 
-  const url = new URL("/auth/register", req.url);
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  const url = new URL(`${siteUrl}/auth/register`);
   url.searchParams.set("ref", cleanSlug);
 
   const response = NextResponse.redirect(url);
