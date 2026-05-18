@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestOrigin } from "@/lib/url";
 
 // /ref/[slug] — captura código de indicação, salva em cookie e redireciona
 export async function GET(
@@ -8,12 +9,9 @@ export async function GET(
   const { slug } = await ctx.params;
   const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
 
-  // Usa o origin REAL da requisição — nunca depende de env var.
-  // Isso garante que se o usuário acessou via https://clube.chikjov.com.br,
-  // o redirect vai pro mesmo domínio — não pra localhost.
-  const url = req.nextUrl.clone();
-  url.pathname = "/auth/register";
-  url.search = "";
+  // Resolve o domínio público REAL respeitando x-forwarded-host (Hostinger, nginx, etc).
+  const origin = getRequestOrigin(req);
+  const url = new URL(`${origin}/auth/register`);
   url.searchParams.set("ref", cleanSlug);
 
   const response = NextResponse.redirect(url);

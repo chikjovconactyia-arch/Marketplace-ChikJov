@@ -6,6 +6,7 @@ import {
   resolveClientePriceId,
   STRIPE_TRIAL_DAYS,
 } from "@/lib/stripe/server";
+import { getRequestOrigin } from "@/lib/url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,8 +63,8 @@ export async function POST(req: NextRequest) {
     }
 
     const priceId = await resolveClientePriceId();
-    // Usa o origin REAL da requisição — domínio do usuário, não env var
-    const siteUrl = req.nextUrl.origin;
+    // Domínio público real (respeita x-forwarded-host do proxy reverso)
+    const siteUrl = getRequestOrigin(req);
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

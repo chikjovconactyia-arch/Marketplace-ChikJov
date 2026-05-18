@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
+import { getRequestOrigin } from "@/lib/url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,8 +34,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Usa o origin REAL da requisição — domínio do usuário, não env var
-    const siteUrl = req.nextUrl.origin;
+    // Domínio público real (respeita x-forwarded-host do proxy reverso)
+    const siteUrl = getRequestOrigin(req);
 
     const session = await stripe.billingPortal.sessions.create({
       customer: assinatura.stripe_customer_id,
