@@ -3,11 +3,13 @@
 import { useState, useTransition } from "react";
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { loginAction } from "@/app/actions/auth";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   return (
     <form
@@ -52,12 +54,13 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       </div>
 
       <div className="flex items-center justify-end">
-        <a
-          href="#"
-          className="text-xs font-medium text-brand-700 hover:underline"
+        <button
+          type="button"
+          onClick={() => setShowForgotModal(true)}
+          className="text-xs font-medium text-brand-700 hover:underline transition-colors"
         >
           Esqueci minha senha
-        </a>
+        </button>
       </div>
 
       <button
@@ -81,6 +84,11 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
           {error}
         </div>
       )}
+
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+      />
     </form>
   );
 }

@@ -25,7 +25,9 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
       const sub = session.subscription;
       if (sub && typeof sub !== "string") {
         // Extrai a senha dos campos personalizados do Stripe Checkout
-        const senhaField = session.custom_fields?.find((f) => f.key === "senha");
+        const senhaField = session.custom_fields?.find(
+          (f) => f.key === "senha" || f.label.custom?.toLowerCase() === "senha"
+        );
         const password = senhaField?.text?.value ?? null;
 
         // Fallback síncrono: Sincroniza a assinatura no banco de dados na hora,

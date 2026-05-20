@@ -120,21 +120,60 @@ export async function syncSubscription(
     customerName = (customer as Stripe.Customer).name ?? null;
   }
 
-  // Fallback 1: busca o ID do usuário no Supabase Auth por e-mail direto no banco (schema auth)
+  // Fallback 1: busca o ID do usuário no Supabase Auth por e-mail
   if (!userId && customerEmail) {
     try {
-      const authAdmin = createAdminClient("auth");
-      const { data, error: getError } = await authAdmin
-        .from("users")
-        .select("id")
-        .eq("email", customerEmail.toLowerCase())
-        .maybeSingle();
+      // 1. Tenta a API oficial de administração do Supabase (altamente confiável e contorna bloqueios de banco de dados)
+      const { data: listData, error: listError } = await admin.auth.admin.listUsers();
+      if (!listError && listData?.users) {
+        const foundUser = listData.users.find(
+          (u) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+        );
+        if (foundUser) {
+          userId = foundUser.id;
+        }
+      }
 
-      if (!getError && data) {
-        userId = (data as { id: string }).id;
+      // 2. Se falhar ou não encontrar na API, usa o fallback direto no banco de dados
+      if (!userId) {
+        const authAdmin = createAdminClient("auth");
+        const { data, error: getError } = await authAdmin
+          .from("users")
+          .select("id")
+          .eq("email", customerEmail.toLowerCase())
+          .maybeSingle();
+
+        if (!getError && data) {
+          userId = (data as { id: string }).id;
+        }
       }
     } catch (authErr) {
       console.error("[stripe/sync] erro ao buscar usuário por email:", authErr);
+    }
+  }
+
+  // Se o usuário JÁ existe, mas a senha foi fornecida nesta chamada (ex: após criação parcial por evento anterior),
+  // atualizamos a senha dele no Supabase Auth para garantir que ele consiga fazer login imediatamente.
+  if (userId && password) {
+    try {
+      console.log(
+        `[stripe/sync] usuário existente encontrado (${customerEmail}). Atualizando senha fornecida pelo Stripe Checkout...`
+      );
+      const { error: updateErr } = await admin.auth.admin.updateUserById(userId, {
+        password: password,
+        email_confirm: true,
+        phone_confirm: true,
+        user_metadata: {
+          stripe_customer_id: customerId,
+        }
+      });
+      if (updateErr) {
+        console.error("[stripe/sync] erro ao atualizar senha do usuário existente:", updateErr);
+      } else {
+        console.log("[stripe/sync] senha do usuário existente atualizada com sucesso.");
+      }
+    } catch (updateErr) {
+      console.error("[stripe/sync] erro ao atualizar senha do usuário existente:", updateErr);
     }
   }
 
@@ -160,16 +199,40 @@ export async function syncSubscription(
         if (userError) {
           // Condição de corrida: Webhook e Página de Sucesso rodando simultaneamente
           if (userError.message?.includes("duplicate") || userError.message?.includes("already exists")) {
-             const fallbackAuthAdmin = createAdminClient("auth");
-             const { data: existingUser } = await fallbackAuthAdmin
-               .from("users")
-               .select("id")
-               .eq("email", customerEmail.toLowerCase())
-               .maybeSingle();
-             if (existingUser) {
-               userId = existingUser.id;
+             // 1. Tenta buscar pela API oficial
+             const { data: listData, error: listError } = await admin.auth.admin.listUsers();
+             let foundUser = null;
+             if (!listError && listData?.users) {
+               foundUser = listData.users.find(
+                 (u) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+               );
+             }
+             if (foundUser) {
+               userId = foundUser.id;
              } else {
-               throw userError;
+               // 2. Fallback no schema auth direto no banco de dados
+               const fallbackAuthAdmin = createAdminClient("auth");
+               const { data: existingUser } = await fallbackAuthAdmin
+                 .from("users")
+                 .select("id")
+                 .eq("email", customerEmail.toLowerCase())
+                 .maybeSingle();
+               if (existingUser) {
+                 userId = existingUser.id;
+               } else {
+                 throw userError;
+               }
+             }
+
+             // Como o usuário já existia (criado em paralelo sem senha), aplicamos a senha e a confirmação agora!
+             if (userId && password) {
+               console.log("[stripe/sync] Condição de corrida tratada: atualizando senha no usuário existente.");
+               await admin.auth.admin.updateUserById(userId, {
+                 password: password,
+                 email_confirm: true,
+                 phone_confirm: true,
+                 user_metadata: { stripe_customer_id: customerId }
+               });
              }
           } else {
              throw userError;
@@ -200,36 +263,42 @@ export async function syncSubscription(
       } else {
         // inviteUserByEmail cria o usuário E envia email de convite
         // (com link mágico que redireciona pra /auth/reset-password)
-        const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(
-          customerEmail,
-          {
-            data: {
-              full_name: customerName ?? "",
-              role: "cliente",
-              stripe_customer_id: customerId,
-            },
-            redirectTo: `${siteUrl}/auth/reset-password`,
-          }
-        );
-        if (inviteErr) throw inviteErr;
-        if (invited.user) {
-          userId = invited.user.id;
-          console.log(
-            "[stripe/sync] usuário criado e convite enviado:",
-            userId,
-            customerEmail
-          );
-
-          // Garante que existe profile com role=cliente
-          await admin.from("profiles").upsert(
+        try {
+          const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(
+            customerEmail,
             {
-              id: userId,
-              role: "cliente",
-              full_name: customerName ?? null,
-              subscription_status: "inativo",
-            },
-            { onConflict: "id" }
+              data: {
+                full_name: customerName ?? "",
+                role: "cliente",
+                stripe_customer_id: customerId,
+              },
+              redirectTo: `${siteUrl}/auth/reset-password`,
+            }
           );
+          if (inviteErr) {
+            // Apenas registra o erro de SMTP ou e-mail sem quebrar a execução geral do webhook
+            console.error("[stripe/sync] erro de SMTP/convite ao convidar usuário por e-mail:", inviteErr.message);
+          } else if (invited.user) {
+            userId = invited.user.id;
+            console.log(
+              "[stripe/sync] usuário criado e convite enviado:",
+              userId,
+              customerEmail
+            );
+
+            // Garante que existe profile com role=cliente
+            await admin.from("profiles").upsert(
+              {
+                id: userId,
+                role: "cliente",
+                full_name: customerName ?? null,
+                subscription_status: "inativo",
+              },
+              { onConflict: "id" }
+            );
+          }
+        } catch (inviteException: any) {
+          console.error("[stripe/sync] exceção ao tentar enviar convite por e-mail:", inviteException?.message);
         }
       }
     } catch (createErr) {
