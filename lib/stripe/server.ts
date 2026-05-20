@@ -157,16 +157,35 @@ export async function syncSubscription(
           }
         });
 
-        if (userError) throw userError;
+        if (userError) {
+          // Condição de corrida: Webhook e Página de Sucesso rodando simultaneamente
+          if (userError.message?.includes("duplicate") || userError.message?.includes("already exists")) {
+             const fallbackAuthAdmin = createAdminClient("auth");
+             const { data: existingUser } = await fallbackAuthAdmin
+               .from("users")
+               .select("id")
+               .eq("email", customerEmail.toLowerCase())
+               .maybeSingle();
+             if (existingUser) {
+               userId = existingUser.id;
+             } else {
+               throw userError;
+             }
+          } else {
+             throw userError;
+          }
+        }
 
-        if (userCreated.user) {
+        if (userCreated?.user) {
           userId = userCreated.user.id;
           console.log(
             "[stripe/sync] usuário criado com senha fornecida do Stripe:",
             userId,
             customerEmail
           );
-
+        }
+        
+        if (userId) {
           // Garante que existe profile com role=cliente
           await admin.from("profiles").upsert(
             {
