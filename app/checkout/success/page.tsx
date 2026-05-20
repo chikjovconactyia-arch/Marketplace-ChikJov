@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { CheckCircle2, ArrowRight, Calendar, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { stripe, syncSubscription } from "@/lib/stripe/server";
+
 
 export const metadata = { title: "Assinatura confirmada — ChikJov" };
 export const dynamic = "force-dynamic";
@@ -23,6 +24,14 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
       });
       const sub = session.subscription;
       if (sub && typeof sub !== "string") {
+        // Extrai a senha dos campos personalizados do Stripe Checkout
+        const senhaField = session.custom_fields?.find((f) => f.key === "senha");
+        const password = senhaField?.text?.value ?? null;
+
+        // Fallback síncrono: Sincroniza a assinatura no banco de dados na hora,
+        // garantindo a ativação instantânea mesmo se o webhook demorar ou falhar.
+        await syncSubscription(sub, session.metadata ?? null, password);
+
         if (sub.trial_end) trialEnd = new Date(sub.trial_end * 1000);
         const price = sub.items.data[0]?.price;
         if (price?.unit_amount) {
@@ -73,18 +82,17 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
           )}
 
           {!isLoggedIn && (
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-left">
               <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100">
-                  <Mail className="h-5 w-5 text-amber-700" />
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-100">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-700" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">
-                    Verifique seu email para acessar a conta
+                  <p className="text-sm font-semibold text-emerald-950">
+                    Sua conta foi criada com sucesso!
                   </p>
-                  <p className="mt-1 text-xs text-amber-800">
-                    Enviamos um link para o email cadastrado no pagamento. Use-o
-                    para definir sua senha e acessar o painel do cliente.
+                  <p className="mt-1 text-xs text-emerald-800">
+                    Use o e-mail informado no pagamento e a **senha** que você acabou de cadastrar no checkout do Stripe para entrar no sistema imediatamente.
                   </p>
                 </div>
               </div>
@@ -105,7 +113,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
                 href="/auth/login"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-500 font-bold text-white shadow-cta hover:bg-accent-600"
               >
-                Já defini minha senha — Fazer login
+                Fazer login agora
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link href="/" className="text-sm text-ink-muted hover:text-brand-700">

@@ -13,6 +13,7 @@ function isPublic(pathname: string) {
   if (pathname.startsWith("/ref/")) return true; // link de indicação
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/api/public")) return true;
+  if (pathname === "/api/stripe/webhook") return true; // Webhook do Stripe (comunicação externa segura)
   return false;
 }
 
