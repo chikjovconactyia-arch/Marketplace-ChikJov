@@ -14,23 +14,33 @@ export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   const supabase = createClient();
 
-  // Aguarda o Supabase processar o token de recovery vindo na URL (#access_token=...)
   useEffect(() => {
+    // Verifica sessão já existente (usuário chegou via /auth/callback que fez o exchange)
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setSessionReady(true);
     });
+
+    // Escuta eventos de auth (para fluxo de hash fragment ou recovery)
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setSessionReady(true);
       }
     });
-    return () => sub.subscription.unsubscribe();
+
+    // Timeout de segurança: se após 8s a sessão não aparecer, mostra mensagem de erro
+    const timeout = setTimeout(() => setTimedOut(true), 8000);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [supabase]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
@@ -57,6 +67,22 @@ export function ResetPasswordForm() {
   }
 
   if (!sessionReady) {
+    if (timedOut) {
+      return (
+        <div className="mt-6 space-y-3">
+          <div className="flex items-start gap-2 rounded-xl bg-red-50 p-4 text-sm text-red-800">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+            Link expirado ou inválido. Solicite um novo link de acesso pelo suporte ou tente fazer login normalmente.
+          </div>
+          <a
+            href="/auth/login"
+            className="block text-center text-sm font-semibold text-brand-700 hover:underline"
+          >
+            Ir para o login
+          </a>
+        </div>
+      );
+    }
     return (
       <div className="mt-6 flex items-center gap-2 rounded-xl bg-brand-50 p-4 text-sm text-brand-800">
         <Loader2 className="h-4 w-4 animate-spin" />

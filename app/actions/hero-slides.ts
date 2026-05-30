@@ -17,6 +17,8 @@ export interface HeroSlideInput {
   city: string;
   order: number;
   active: boolean;
+  show_home: boolean;
+  show_landpage: boolean;
 }
 
 export interface SlideResult {
@@ -50,6 +52,8 @@ export async function createHeroSlideAction(data: HeroSlideInput): Promise<Slide
       city: data.city || null,
       order: data.order ?? 0,
       active: data.active ?? true,
+      show_home: data.show_home ?? true,
+      show_landpage: data.show_landpage ?? true,
     })
     .select("id")
     .single();
@@ -81,6 +85,8 @@ export async function updateHeroSlideAction(id: string, data: HeroSlideInput): P
       city: data.city || null,
       order: data.order ?? 0,
       active: data.active ?? true,
+      show_home: data.show_home ?? true,
+      show_landpage: data.show_landpage ?? true,
     })
     .eq("id", id);
 
@@ -140,6 +146,8 @@ export async function duplicateHeroSlideAction(id: string): Promise<SlideResult>
       city: original.city ?? null,
       active: false,
       order: (original.order ?? 0) + 1,
+      show_home: original.show_home ?? true,
+      show_landpage: original.show_landpage ?? true,
     })
     .select("id")
     .single();

@@ -45,9 +45,14 @@ export async function POST(req: NextRequest) {
 
         // Extrai a senha dos campos personalizados do Stripe Checkout
         const senhaField = session.custom_fields?.find(
-          (f) => f.key === "senha" || f.label.custom?.toLowerCase() === "senha"
+          (f) =>
+            f.key?.toLowerCase() === "senha" ||
+            f.key?.toLowerCase() === "password" ||
+            f.label.custom?.toLowerCase().includes("senha") ||
+            f.label.custom?.toLowerCase().includes("password")
         );
-        const password = senhaField?.text?.value ?? null;
+        const password =
+          (senhaField?.text?.value ?? "").trim() || null;
 
         await syncSubscription(subscription, session.metadata ?? null, password);
         break;

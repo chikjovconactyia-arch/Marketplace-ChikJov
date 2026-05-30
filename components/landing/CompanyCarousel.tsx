@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MapPin, Package, ArrowRight } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { mockCompanies } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 
 interface CompanyCard {
   id: string;
@@ -34,6 +36,40 @@ export function CompanyCarousel({ companies }: Props) {
         }));
 
   const [isPaused, setIsPaused] = useState(false);
+
+  // Supabase state para checar login
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+  const pathname = usePathname();
+  const isLandpage = pathname === "/landpage";
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      }
+    }
+    loadUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  const stripeLink = "https://buy.stripe.com/test_4gMaEY2cgbbheVo1x68AE00";
+  const getCtaLink = (originalLink: string) => {
+    if (isLandpage && !user) {
+      return stripeLink;
+    }
+    return originalLink;
+  };
 
   // Duplicamos os itens para criar o efeito de loop infinito
   const marqueeItems = [...items, ...items];
@@ -102,10 +138,10 @@ export function CompanyCarousel({ companies }: Props) {
                 )}
 
                 <Link
-                  href={`/empresa/${c.id}`}
+                  href={getCtaLink(`/empresa/${c.id}`)}
                   className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 hover:border-brand-400"
                 >
-                  Ver mais
+                  {isLandpage && !user ? "Assine" : "Ver mais"}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
@@ -123,9 +159,9 @@ export function CompanyCarousel({ companies }: Props) {
         )}
 
         <Link
-          href="/marketplace"
-          target="_blank"
-          rel="noopener noreferrer"
+          href={getCtaLink("/marketplace")}
+          target={isLandpage && !user ? undefined : "_blank"}
+          rel={isLandpage && !user ? undefined : "noopener noreferrer"}
           className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-3 text-sm font-bold text-white shadow-cta transition-all hover:scale-105 hover:shadow-brand-500/25 active:scale-95"
         >
           Clube de Vantagens ChikJov

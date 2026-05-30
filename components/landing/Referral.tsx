@@ -9,7 +9,7 @@ const perks = [
 
 export function Referral() {
   return (
-    <section className="bg-white py-16 md:py-24 lg:py-28">
+    <section id="programa-indicacao" className="bg-white py-16 md:py-24 lg:py-28">
       <div className="container-tight grid items-center gap-16 md:grid-cols-2">
         <div>
           <span className="pill">💸 Programa de indicação</span>

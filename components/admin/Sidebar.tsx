@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, CreditCard, Ticket, Share2,
   DollarSign, FileText, Layers, Grid3x3, Map, Settings, BarChart3,
-  Sparkles, ChevronDown, X, Globe, UserCheck
+  Sparkles, ChevronDown, X, Globe, UserCheck, LayoutGrid
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./SidebarContext";
@@ -45,6 +45,7 @@ const navGroups: NavGroup[] = [
     title: "Conteúdo",
     items: [
       { href: "/dashboard/admin/hero-carousel", icon: Layers, label: "Hero Carousel" },
+      { href: "/dashboard/admin/card-home", icon: LayoutGrid, label: "Card-Home" },
       { href: "/dashboard/admin/parceiros", icon: Globe, label: "Parceiros" },
       { href: "/dashboard/admin/categorias", icon: Grid3x3, label: "Categorias" },
       { href: "/dashboard/admin/cidades", icon: Map, label: "Cidades" },

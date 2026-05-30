@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Star, Settings, User, Share2 } from "lucide-react";
+import { Home, Star, Settings, User, Share2, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/", icon: Home, label: "Home", match: (p: string) => p === "/" },
   { href: "/marketplace", icon: Star, label: "Clube", match: (p: string) => p.startsWith("/marketplace") },
-  { href: "/servicos", icon: Settings, label: "Serviços", match: (p: string) => p.startsWith("/servicos") },
+  { href: "/landpage", icon: Globe, label: "Landpage", match: (p: string) => p.startsWith("/landpage") },
+  { href: "/", icon: Home, label: "Home", match: (p: string) => p === "/" },
   { href: "/dashboard/cliente", icon: User, label: "Minha Conta", match: (p: string) => p.startsWith("/dashboard/cliente") && !p.startsWith("/dashboard/cliente/indicacoes") },
   { href: "/dashboard/cliente/indicacoes", icon: Share2, label: "Indique", match: (p: string) => p.startsWith("/dashboard/cliente/indicacoes") },
 ];

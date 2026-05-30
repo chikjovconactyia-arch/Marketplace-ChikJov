@@ -202,6 +202,8 @@ const emptyForm = {
   cta2_text: "", cta2_link: "",
   city: "",
   order: 0, active: true,
+  show_home: true,
+  show_landpage: true,
 };
 
 const CIDADES_RMBH = [
@@ -239,6 +241,8 @@ function SlideModal({
           city: editing.city ?? "",
           order: editing.order,
           active: editing.active,
+          show_home: editing.show_home ?? true,
+          show_landpage: editing.show_landpage ?? true,
         }
       : { ...emptyForm }
   );
@@ -272,6 +276,8 @@ function SlideModal({
     city: form.city || null,
     active: form.active,
     order: form.order,
+    show_home: form.show_home,
+    show_landpage: form.show_landpage,
   };
 
   const inputCls = "w-full rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
@@ -469,11 +475,39 @@ function SlideModal({
                   <div className="flex w-full items-center justify-between rounded-xl border border-[#E8E4F3] px-4 py-3">
                     <div>
                       <p className="text-sm font-medium text-ink">Slide ativo</p>
-                      <p className="text-[11px] text-ink-subtle">Aparece no hero da landing</p>
+                      <p className="text-[11px] text-ink-subtle">Status geral de ativação</p>
                     </div>
                     <button type="button" onClick={() => setForm((f) => ({ ...f, active: !f.active }))}
                       className={cn("relative h-6 w-11 rounded-full transition-colors", form.active ? "bg-brand-500" : "bg-surface-muted")}>
                       <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", form.active ? "translate-x-5" : "translate-x-0.5")} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Páginas de Exibição */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <div className="flex w-full items-center justify-between rounded-xl border border-[#E8E4F3] px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Exibir na Home</p>
+                      <p className="text-[11px] text-ink-subtle">Aparece na página inicial (/)</p>
+                    </div>
+                    <button type="button" onClick={() => setForm((f) => ({ ...f, show_home: !f.show_home }))}
+                      className={cn("relative h-6 w-11 rounded-full transition-colors", form.show_home ? "bg-brand-500" : "bg-surface-muted")}>
+                      <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", form.show_home ? "translate-x-5" : "translate-x-0.5")} />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex w-full items-center justify-between rounded-xl border border-[#E8E4F3] px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Exibir na Landpage</p>
+                      <p className="text-[11px] text-ink-subtle">Aparece na página /landpage</p>
+                    </div>
+                    <button type="button" onClick={() => setForm((f) => ({ ...f, show_landpage: !f.show_landpage }))}
+                      className={cn("relative h-6 w-11 rounded-full transition-colors", form.show_landpage ? "bg-brand-500" : "bg-surface-muted")}>
+                      <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", form.show_landpage ? "translate-x-5" : "translate-x-0.5")} />
                     </button>
                   </div>
                 </div>

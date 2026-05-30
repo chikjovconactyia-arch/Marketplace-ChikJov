@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 
 export interface HeroSlide {
   id: string;
@@ -20,6 +22,8 @@ export interface HeroSlide {
   city?: string | null;
   active: boolean;
   order: number;
+  show_home?: boolean;
+  show_landpage?: boolean;
 }
 
 interface Props {
@@ -54,6 +58,40 @@ export function HeroCarousel({ slides }: Props) {
   // Touch swipe state
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  // Supabase state para checar login
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+  const pathname = usePathname();
+  const isLandpage = pathname === "/landpage";
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      }
+    }
+    loadUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  const stripeLink = "https://buy.stripe.com/test_4gMaEY2cgbbheVo1x68AE00";
+  const getCtaLink = (originalLink: string | null) => {
+    if (isLandpage && !user) {
+      return stripeLink;
+    }
+    return originalLink ?? "#";
+  };
 
   const go = useCallback(
     (idx: number) => {
@@ -167,17 +205,17 @@ export function HeroCarousel({ slides }: Props) {
         })}
 
         {/* Content Mobile */}
-        <div className="absolute inset-0 flex items-center p-5 gap-4 md:hidden z-10">
+        <div className="absolute inset-0 flex items-end p-4 pb-5 gap-3.5 md:hidden z-10 bg-gradient-to-t from-black/85 via-black/45 to-transparent">
           {slide.logo_image_url && (
             <div className={cn(
-              "flex-shrink-0 w-[84px] h-[84px] rounded-full border-[3px] border-white/10 overflow-hidden shadow-2xl bg-white",
+              "flex-shrink-0 w-[72px] h-[72px] rounded-full border-[3px] border-white/15 overflow-hidden shadow-2xl bg-white",
               "transition-all duration-500 delay-75",
               transitioning ? "opacity-0 scale-90" : "opacity-100 scale-100"
             )}>
               <img src={slide.logo_image_url} alt="Logo" className="w-full h-full object-cover" />
             </div>
           )}
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex-1 min-w-0 flex flex-col justify-end">
             {slide.badge && (
               <div
                 className={cn(
@@ -220,7 +258,7 @@ export function HeroCarousel({ slides }: Props) {
               >
                 {slide.cta_text?.trim() && slide.cta_link?.trim() && (
                   <Link
-                    href={slide.cta_link}
+                    href={getCtaLink(slide.cta_link)}
                     className="inline-flex h-8 items-center justify-center rounded-full bg-accent-500 px-5 text-[11px] font-bold tracking-wide text-white shadow-cta transition-all hover:bg-accent-600 active:scale-95"
                   >
                     {slide.cta_text}
@@ -228,7 +266,7 @@ export function HeroCarousel({ slides }: Props) {
                 )}
                 {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
                   <Link
-                    href={slide.cta2_link}
+                    href={getCtaLink(slide.cta2_link)}
                     className="inline-flex h-8 items-center justify-center rounded-full border border-white/40 bg-white/15 px-5 text-[11px] font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95"
                   >
                     {slide.cta2_text}
@@ -296,7 +334,7 @@ export function HeroCarousel({ slides }: Props) {
           >
             {slide.cta_text?.trim() && slide.cta_link?.trim() && (
               <Link
-                href={slide.cta_link}
+                href={getCtaLink(slide.cta_link)}
                 className={cn(
                   "inline-flex items-center justify-center rounded-full bg-accent-500 font-bold text-white shadow-cta transition-all hover:bg-accent-600 active:scale-[0.98]",
                   "h-14 px-8 text-base"
@@ -307,7 +345,7 @@ export function HeroCarousel({ slides }: Props) {
             )}
             {slide.cta2_text?.trim() && slide.cta2_link?.trim() && (
               <Link
-                href={slide.cta2_link}
+                href={getCtaLink(slide.cta2_link)}
                 className={cn(
                   "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20",
                   "h-14 px-8 text-base"

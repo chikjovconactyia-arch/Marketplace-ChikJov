@@ -134,17 +134,17 @@ export async function syncSubscription(
         }
       }
 
-      // 2. Se falhar ou não encontrar na API, usa o fallback direto no banco de dados
       if (!userId) {
-        const authAdmin = createAdminClient("auth");
-        const { data, error: getError } = await authAdmin
-          .from("users")
-          .select("id")
-          .eq("email", customerEmail.toLowerCase())
-          .maybeSingle();
-
-        if (!getError && data) {
-          userId = (data as { id: string }).id;
+        // Aguarda meio segundo para garantir eventual consistency em caso de criação concorrente
+        await new Promise((r) => setTimeout(r, 500));
+        const { data: retryData } = await admin.auth.admin.listUsers();
+        if (retryData?.users) {
+          const retryUser = retryData.users.find(
+            (u) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+          );
+          if (retryUser) {
+            userId = retryUser.id;
+          }
         }
       }
     } catch (authErr) {
@@ -198,7 +198,11 @@ export async function syncSubscription(
 
         if (userError) {
           // Condição de corrida: Webhook e Página de Sucesso rodando simultaneamente
-          if (userError.message?.includes("duplicate") || userError.message?.includes("already exists")) {
+          if (
+            userError.message?.includes("duplicate") || 
+            userError.message?.includes("already") || 
+            (userError as any).code === "email_exists"
+          ) {
              // 1. Tenta buscar pela API oficial
              const { data: listData, error: listError } = await admin.auth.admin.listUsers();
              let foundUser = null;
@@ -210,15 +214,14 @@ export async function syncSubscription(
              if (foundUser) {
                userId = foundUser.id;
              } else {
-               // 2. Fallback no schema auth direto no banco de dados
-               const fallbackAuthAdmin = createAdminClient("auth");
-               const { data: existingUser } = await fallbackAuthAdmin
-                 .from("users")
-                 .select("id")
-                 .eq("email", customerEmail.toLowerCase())
-                 .maybeSingle();
-               if (existingUser) {
-                 userId = existingUser.id;
+               // Aguarda meio segundo e tenta de novo
+               await new Promise((r) => setTimeout(r, 500));
+               const { data: retryList } = await admin.auth.admin.listUsers();
+               const retryUser = retryList?.users.find(
+                 (u) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+               );
+               if (retryUser) {
+                 userId = retryUser.id;
                } else {
                  throw userError;
                }
@@ -272,7 +275,7 @@ export async function syncSubscription(
                 role: "cliente",
                 stripe_customer_id: customerId,
               },
-              redirectTo: `${siteUrl}/auth/reset-password`,
+              redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
             }
           );
           if (inviteErr) {
@@ -343,43 +346,51 @@ export async function syncSubscription(
     ? new Date(currentPeriodEnd * 1000).toISOString()
     : null;
 
-  // Upsert da assinatura local — chave única: cliente_id + stripe_subscription_id
-  const { data: existente } = await admin
-    .from("assinaturas")
-    .select("id")
-    .eq("stripe_subscription_id", subscription.id)
-    .maybeSingle();
-
-  if (existente) {
-    await admin
+  // Upsert da assinatura local — chave única: stripe_subscription_id
+  // Envolvido em try/catch para garantir que o profile SEMPRE seja atualizado
+  // mesmo se a operação na tabela assinaturas falhar (ex: condição de corrida).
+  try {
+    const { data: existente } = await admin
       .from("assinaturas")
-      .update({
-        status,
+      .select("id")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+
+    if (existente) {
+      const { error: updErr } = await admin
+        .from("assinaturas")
+        .update({
+          status,
+          plano: "cliente",
+          stripe_customer_id: customerId,
+          data_inicio: dataInicio,
+          data_fim: dataFim,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existente.id);
+      if (updErr) console.error("[stripe/sync] erro ao atualizar assinatura:", updErr);
+    } else {
+      const { error: insErr } = await admin.from("assinaturas").insert({
+        cliente_id: userId,
         plano: "cliente",
+        status,
         stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
         data_inicio: dataInicio,
         data_fim: dataFim,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", existente.id);
-  } else {
-    await admin.from("assinaturas").insert({
-      cliente_id: userId,
-      plano: "cliente",
-      status,
-      stripe_customer_id: customerId,
-      stripe_subscription_id: subscription.id,
-      data_inicio: dataInicio,
-      data_fim: dataFim,
-    });
+      });
+      if (insErr) console.error("[stripe/sync] erro ao inserir assinatura:", insErr);
+    }
+  } catch (assinaturaErr) {
+    console.error("[stripe/sync] erro inesperado ao sincronizar assinatura:", assinaturaErr);
   }
 
-  // Reflete no profile
+  // Atualiza o profile — sempre executado, independente do resultado acima
   const trialEndsAt = subscription.trial_end
     ? new Date(subscription.trial_end * 1000).toISOString()
     : null;
 
-  await admin
+  const { error: profileErr } = await admin
     .from("profiles")
     .update({
       subscription_status: status,
@@ -388,4 +399,10 @@ export async function syncSubscription(
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  if (profileErr) {
+    console.error("[stripe/sync] erro ao atualizar profile:", profileErr, "userId:", userId);
+  } else {
+    console.log("[stripe/sync] profile atualizado:", userId, "→", status);
+  }
 }

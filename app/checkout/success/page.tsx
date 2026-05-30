@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CheckCircle2, ArrowRight, Calendar, Mail } from "lucide-react";
+import { CheckCircle2, ArrowRight, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe, syncSubscription } from "@/lib/stripe/server";
 
 
@@ -26,13 +27,33 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
       if (sub && typeof sub !== "string") {
         // Extrai a senha dos campos personalizados do Stripe Checkout
         const senhaField = session.custom_fields?.find(
-          (f) => f.key === "senha" || f.label.custom?.toLowerCase() === "senha"
+          (f) =>
+            f.key?.toLowerCase() === "senha" ||
+            f.key?.toLowerCase() === "password" ||
+            f.label.custom?.toLowerCase().includes("senha") ||
+            f.label.custom?.toLowerCase().includes("password")
         );
-        const password = senhaField?.text?.value ?? null;
+        const password =
+          (senhaField?.text?.value ?? "").trim() || null;
 
-        // Fallback síncrono: Sincroniza a assinatura no banco de dados na hora,
-        // garantindo a ativação instantânea mesmo se o webhook demorar ou falhar.
+        // Sincroniza a assinatura no banco (webhook pode ainda não ter chegado).
         await syncSubscription(sub, session.metadata ?? null, password);
+
+        // Fallback direto: garante ativação do profile mesmo se syncSubscription
+        // falhar por algum motivo (ex: erro na tabela assinaturas, race condition).
+        const supabaseAuth = await createClient();
+        const { data: { user: loggedUser } } = await supabaseAuth.auth.getUser();
+        if (loggedUser) {
+          const admin = createAdminClient();
+          await admin.from("profiles").update({
+            subscription_status: "ativo",
+            subscription_plan: "cliente",
+            trial_ends_at: sub.trial_end
+              ? new Date(sub.trial_end * 1000).toISOString()
+              : null,
+            updated_at: new Date().toISOString(),
+          }).eq("id", loggedUser.id);
+        }
 
         if (sub.trial_end) trialEnd = new Date(sub.trial_end * 1000);
         const price = sub.items.data[0]?.price;

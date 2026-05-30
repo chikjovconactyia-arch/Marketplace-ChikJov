@@ -8,13 +8,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-const defaultLinks = [
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/#como-funciona", label: "Como funciona" },
-  { href: "/#beneficios", label: "Benefícios" },
-  { href: "/#preco", label: "Preço" },
-  { href: "/#empresas", label: "Para empresas" },
-];
+const defaultLinks: { href: string; label: string }[] = [];
 
 const marketplaceLinks = [
   { href: "/", label: "Home" },
@@ -27,9 +21,10 @@ interface HeaderProps {
     count: number;
     totalSaved: number;
   };
+  customLinks?: { href: string; label: string }[];
 }
 
-export function Header({ isMarketplace, voucherStats }: HeaderProps) {
+export function Header({ isMarketplace, voucherStats, customLinks }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -38,7 +33,7 @@ export function Header({ isMarketplace, voucherStats }: HeaderProps) {
   const router = useRouter();
   const supabase = createClient();
 
-  const links = isMarketplace ? marketplaceLinks : defaultLinks;
+  const links = customLinks ? customLinks : (isMarketplace ? marketplaceLinks : defaultLinks);
 
   useEffect(() => {
     async function loadUser() {
